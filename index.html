@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRM Symulacja – Symulator Architektury Transformacji</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{
+  --font-sans:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f6f5f1;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#666663;
+  --color-border-tertiary:rgba(0,0,0,0.10);
+  --color-border-secondary:rgba(0,0,0,0.18);
+  --border-radius-md:8px;
+  --border-radius-lg:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:#edecea;min-height:100vh;padding:16px}
+.aw{max-width:820px;margin:0 auto;background:#fff;border-radius:16px;padding:1.75rem 2rem;box-shadow:0 2px 24px rgba(0,0,0,0.07)}
+.ah{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:1rem;margin-bottom:1.5rem;border-bottom:0.5px solid rgba(0,0,0,0.12)}
+.at{font-size:18px;font-weight:600;color:#1a1a1a}
+.as{font-size:11px;color:#888;margin-top:3px}
+.pb{padding:5px 12px;border-radius:6px;border:0.5px solid rgba(0,0,0,0.15);background:transparent;font-size:12px;color:#666;cursor:pointer;font-family:var(--font-sans)}
+.pb:hover{background:#f6f5f1}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.screen{display:none}.screen.active{display:block}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;font-size:13px;font-weight:500;color:var(--color-text-primary);cursor:pointer;transition:background .12s;font-family:var(--font-sans)}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.primary{background:#185FA5;color:#E6F1FB;border-color:#185FA5}
+.btn.primary:hover{background:#0C447C}
+.btn.success{background:#3B6D11;color:#EAF3DE;border-color:#3B6D11}
+.btn.success:hover{background:#27500A}
+.btn.sm{padding:4px 10px;font-size:12px}
+input[type=text]{font-size:14px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);width:100%;font-family:var(--font-sans)}
+input[type=range]{width:100%;cursor:pointer;accent-color:#185FA5}
+select{font-size:12px;padding:4px 7px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-family:var(--font-sans)}
+textarea{width:100%;font-size:13px;font-family:var(--font-sans);padding:.75rem;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;line-height:1.6}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:.875rem}
+.sec-label{font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.625rem}
+.def-pill{font-size:11px;padding:4px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);cursor:pointer;transition:all .12s;line-height:1.3;display:inline-block}
+.def-pill:hover{background:var(--color-background-secondary)}
+.def-pill.ap{background:#E6F1FB;border-color:#185FA5;color:#0C447C;font-weight:600}
+.prog-dots{display:flex;gap:8px;margin-bottom:.375rem}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--color-border-tertiary);flex-shrink:0}
+.dot.done{background:#3B6D11}.dot.active{background:#185FA5;width:13px;height:13px}
+.rtrack{position:relative;height:40px}
+.rbg{position:absolute;top:50%;transform:translateY(-50%);left:0;right:0;height:6px;background:var(--color-border-tertiary);border-radius:3px}
+.rfill{position:absolute;top:50%;transform:translateY(-50%);height:6px;background:#185FA5;border-radius:3px;pointer-events:none}
+.rtrack input[type=range]{position:absolute;width:100%;top:50%;transform:translateY(-50%);appearance:none;-webkit-appearance:none;background:transparent;pointer-events:none;height:6px}
+.rtrack input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#185FA5;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:all;cursor:pointer}
+.rtrack input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#185FA5;border:2px solid #fff;pointer-events:all;cursor:pointer}
+.qmarks{display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-secondary);padding:0 2px;margin-bottom:.625rem}
+.qtbl{width:100%;border-collapse:collapse;font-size:13px}
+.qtbl th{font-size:11px;font-weight:500;color:var(--color-text-secondary);padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.qtbl td{padding:7px 8px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:top}
+.qtbl tr:last-child td{border-bottom:none}
+.scell{display:flex;align-items:center;gap:8px}
+.scell input{flex:1;min-width:70px}
+.sv{font-size:12px;font-weight:600;min-width:30px;text-align:right;color:var(--color-text-primary)}
+.mdesc{font-size:10px;color:var(--color-text-secondary);margin-top:2px}
+.nav-row{display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap;align-items:center}
+.proj-tab{padding:5px 11px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary);background:transparent;white-space:nowrap;transition:all .12s;font-family:var(--font-sans)}
+.proj-tab.on{background:#185FA5;color:#E6F1FB;border-color:#185FA5}
+.proj-tab.wr{border-left:3px solid #E24B4A}
+.proj-tab.wa{border-left:3px solid #BA7517}
+.proj-tab.wg{border-left:3px solid #639922}
+.sp-g{background:#EAF3DE;color:#3B6D11;font-size:10px;padding:1px 6px;border-radius:var(--border-radius-md);font-weight:600}
+.sp-a{background:#FAEEDA;color:#854F0B;font-size:10px;padding:1px 6px;border-radius:var(--border-radius-md);font-weight:600}
+.sp-r{background:#FCEBEB;color:#A32D2D;font-size:10px;padding:1px 6px;border-radius:var(--border-radius-md);font-weight:600}
+.rtbl{width:100%;border-collapse:collapse;font-size:12px}
+.rtbl th{font-size:10px;font-weight:600;color:var(--color-text-secondary);padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);text-align:center;white-space:nowrap}
+.rtbl td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);text-align:center;color:var(--color-text-primary)}
+.rtbl td:first-child{text-align:left;color:var(--color-text-secondary);font-size:11px}
+.rtbl tr:last-child td{border-bottom:none}
+.cg{background:#EAF3DE;color:#27500A;font-weight:600;border-radius:4px;padding:2px 6px;font-size:11px;display:inline-block}
+.ca{background:#FAEEDA;color:#633806;font-weight:600;border-radius:4px;padding:2px 6px;font-size:11px;display:inline-block}
+.cr{background:#FCEBEB;color:#791F1F;font-weight:600;border-radius:4px;padding:2px 6px;font-size:11px;display:inline-block}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem;text-align:center}
+.metric .ml{font-size:11px;color:var(--color-text-secondary);margin-bottom:2px}
+.metric .mv{font-size:22px;font-weight:600}
+.scenario-box{background:#EEF4FB;border-radius:var(--border-radius-md);padding:.875rem 1rem;font-size:13px;line-height:1.65;color:#333;margin-bottom:1.25rem}
+.elabel{font-size:11px;color:#854F0B;padding:4px 8px;background:#FAEEDA;border-radius:var(--border-radius-md);margin-top:5px;display:block}
+.role-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;cursor:pointer;transition:all .15s;background:var(--color-background-primary)}
+.role-card:hover{border-color:var(--color-border-secondary);background:#fafaf9}
+.role-card.sel{border:2px solid #185FA5}
+.oac-arrow{font-size:12px;font-weight:600;padding:4px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:inline-flex;align-items:center;gap:5px}
+.reflect-q{font-size:12px;color:var(--color-text-secondary);padding:5px 0 5px 14px;position:relative;line-height:1.5}
+.reflect-q::before{content:'–';position:absolute;left:0;color:#185FA5}
+.interp-note{background:#EAF3DE;border:0.5px solid #3B6D11;border-radius:var(--border-radius-md);padding:1rem;font-size:13px;line-height:1.6;color:#27500A;margin-top:1rem}
+@media print{
+  body{background:#fff;padding:0}
+  .aw{box-shadow:none;border-radius:0;padding:1rem}
+  .pb,.nav-row,.btn{display:none!important}
+  .screen{display:block!important}
+  .screen:not(.active){display:none!important}
+}
+</style>
+</head>
+<body>
+<div class="aw">
+  <div class="ah">
+    <div>
+      <div class="at">TRM – Symulacja</div>
+      <div class="as">Transformation Resilience Model v6.0 &nbsp;·&nbsp; Don't Brake Your People &nbsp;·&nbsp; Wymaga połączenia internetowego (Chart.js)</div>
+    </div>
+    <button class="pb" onclick="window.print()"><i class="ti ti-printer" aria-hidden="true"></i> Drukuj</button>
+  </div>
+
+  <div id="app">
+
+<!-- S0: START -->
+<div class="screen active" id="s0">
+  <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-secondary);margin-bottom:.5rem">Cel</div>
+  <div style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:1.25rem;padding:.875rem 1rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)"><strong>Celem symulacji jest zmierzenie czegoś, czego harmonogramy projektów nie mierzą – ile zmian organizacja jest w stanie udźwignąć jednocześnie, zanim ryzyko utraty kluczowych ludzi i opóźnień staje się ekstremalnie wysokie.</strong><br><br>Model TRM służy liderom którzy chcą przeprowadzić ambitną transformację bez odpuszczania celów biznesowych. Pozwala zobaczyć z wyprzedzeniem, kiedy organizacja zbliża się do granicy wytrzymałości – i wdrożyć działania zaradcze zanim kryzys zmusi do odwrotu. Nie jest narzędziem potrzebnym dla ewolucyjnych programów inkrementalnych ulepszeń. Jest dla intensywnych transformacji z dużą stawką.<br><br>Kalibracja ocen uczestników jest sercem symulacji. Nie chodzi o uzyskanie jednej poprawnej odpowiedzi – chodzi o ujawnienie różnych perspektyw w postrzeganiu tych samych projektów przez różnych członków zespołu, i zbudowanie na tej podstawie konsensusu: jak zespół zarządczy rozumie dynamikę sytuacji i jak chce nią zarządzić.</div>
+  <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-secondary);margin-bottom:.5rem">Kontekst</div>
+  <div class="scenario-box">
+    Logistics Sp. z o.o. świadczy usługi drogowego transportu towarowego i dystrybucji dla klientów B2B z sektorów przemysłowego i FMCG. Zatrudnia 680 pracowników w centrali w Łodzi i czterech oddziałach regionalnych. Dwa kluczowe kontrakty z największymi klientami nie zostały przedłużone.<br><br>
+    Rynek drogowego transportu w Polsce rośnie, ale firma traci na nim udziały. Od czterech kwartałów odnotowuje spadek wolumenu zleceń przy jednoczesnym wzroście kosztów operacyjnych. Wyniki finansowe nie są realizowane. W firmie pojawia się niepewność co do przyszłości – mówi się, że właściciel rozważa zmianę zarządu, a nawet sprzedaż firmy. Zarząd planuje wdrożenie planu oszczędnościowego. Chce pokazać właścicielowi swoją sprawczość oraz to, że firma ma nadal perspektywy generowania zysku i pozytywnych przepływów.<br><br>
+    W firmie wyczuwalny jest niepokój wśród pracowników. Mówi się o nadchodzących zmianach, choć brakuje oficjalnej komunikacji. Zaczyna wzrastać liczba osób na zwolnieniach lekarskich.<br><br>
+    Założenie: OAC startowe = 4,5. Wartość uwzględnia już obniżenie wydolności adaptacyjnej organizacji wynikające z opisanego powyżej niepokoju i braku oficjalnej komunikacji. Zmienia się dynamicznie – przeciążenie niszczy wydolność, stabilizacja ją odbudowuje.
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">
+    <div class="role-card sel" id="rc-participant" onclick="setRole('participant')">
+            <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px">Uczestnik</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.5">Oceniasz 8 projektów indywidualnie – M, S, E per kwartał.</div>
+    </div>
+    <div class="role-card" id="rc-ceo" onclick="setRole('ceo')">
+            <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px">CEO / Moderator</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.5">Kalibrujesz wyniki zespołu, zatwierdzasz plan i analizujesz ACP.</div>
+    </div>
+  </div>
+  <div id="role-extra"></div>
+
+</div>
+
+<!-- S1: UCZESTNIK -->
+<div class="screen" id="s1">
+  <div class="prog-dots" id="p-dots"></div>
+  <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem" id="p-prog"></div>
+  <div id="proj-area"></div>
+</div>
+
+<!-- S2: PODSUMOWANIE -->
+<div class="screen" id="s2">
+  <div style="font-size:16px;font-weight:600;margin-bottom:.25rem;color:var(--color-text-primary)">Podsumowanie Twoich ocen</div>
+  <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem">Sprawdź przed wysłaniem.</div>
+  <div id="sum-area"></div>
+  <div class="nav-row">
+    <button class="btn" onclick="goScreen(1);loadProj(currentProj)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Popraw</button>
+    <button class="btn success" onclick="submitPart()"><i class="ti ti-send" aria-hidden="true"></i> Wyślij do CEO</button>
+  </div>
+</div>
+
+<!-- S3: KOD UCZESTNIKA -->
+<div class="screen" id="s3">
+  <div style="text-align:center;padding:1.5rem 1rem">
+    <div style="font-size:40px;color:#3B6D11;margin-bottom:1rem"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
+    <div style="font-size:16px;font-weight:600;color:var(--color-text-primary);margin-bottom:.5rem">Oceny wysłane</div>
+    <div id="submit-status" style="font-size:14px;font-weight:500;color:#3B6D11;margin-bottom:1rem">Wysyłanie...</div>
+    <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:1.25rem">
+      Sesja: <strong id="session-display" style="color:#185FA5;font-family:monospace"></strong>
+    </div>
+    <div id="fallback-code" style="display:none;background:#f6f5f1;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;padding:1rem;margin:0 auto 1.25rem;max-width:500px;text-align:left">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-bottom:6px">Kod zapasowy – skopiuj i przekaż CEO (Ctrl+A, Ctrl+C)</div>
+      <textarea id="part-code" readonly rows="4" style="font-family:monospace;font-size:11px;word-break:break-all;color:#185FA5;line-height:1.5;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:4px;width:100%;padding:6px;resize:none;cursor:text" onclick="this.select()"></textarea>
+      <button id="copy-btn" class="btn sm primary" style="margin-top:8px;width:100%;display:none" onclick="copyCode()"><i class="ti ti-copy" aria-hidden="true"></i> Kopiuj kod</button>
+      <div id="copy-confirm" style="font-size:11px;color:#3B6D11;margin-top:5px;text-align:center;display:none">Skopiowano!</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn success" onclick="resetForNext()"><i class="ti ti-refresh" aria-hidden="true"></i> Nowa ocena (kolejna osoba)</button>
+      <button class="btn sm" onclick="goScreen(0)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- S4: CEO KALIBRACJA -->
+<div class="screen" id="s4">
+  <div style="font-size:16px;font-weight:600;margin-bottom:.25rem;color:var(--color-text-primary)">CEO – Kalibracja projektu</div>
+  <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem">Rozpiętości ocen generowane są automatycznie. Omów <span class="sp-r">istotne różnice</span> i <span class="sp-a">rozbieżności</span> przed zatwierdzeniem.</div>
+
+  <div class="card" style="margin-bottom:1rem;border-left:3px solid #185FA5;border-radius:0 var(--border-radius-lg) var(--border-radius-lg) 0">
+    <div class="sec-label"><i class="ti ti-users" aria-hidden="true" style="font-size:13px"></i> Sesja warsztatowa</div>
+    <div id="ceo-session-panel">
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.75rem;line-height:1.5">Utwórz nową sesję i przekaż kod uczestnikom. Wyniki pojawią się automatycznie.</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.75rem">
+        <button class="btn primary sm" onclick="createSession()"><i class="ti ti-plus" aria-hidden="true"></i> Utwórz nową sesję</button>
+        <span style="font-size:12px;color:var(--color-text-secondary)">lub</span>
+        <input type="text" id="join-session-input" placeholder="TRM-XXXX" style="width:120px;font-family:monospace;text-transform:uppercase;font-size:13px;letter-spacing:.08em" maxlength="8">
+        <button class="btn sm" onclick="joinSession()">Dołącz do sesji</button>
+      </div>
+    </div>
+    <div id="ceo-active-session" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem;flex-wrap:wrap">
+        <div style="background:#EAF3DE;border-radius:var(--border-radius-md);padding:6px 14px">
+          <span style="font-size:11px;color:#3B6D11;font-weight:500">Kod sesji:</span>
+          <span id="ceo-session-code" style="font-size:18px;font-weight:700;color:#185FA5;font-family:monospace;margin-left:8px"></span>
+        </div>
+        <button class="btn sm" onclick="copySessionCode()"><i class="ti ti-copy" aria-hidden="true"></i> Kopiuj kod</button>
+        <button class="btn sm" onclick="refreshResponses()" id="refresh-btn"><i class="ti ti-refresh" aria-hidden="true"></i> Odśwież</button>
+        <button class="btn sm" style="color:#A32D2D" onclick="clearSession()"><i class="ti ti-trash" aria-hidden="true"></i> Zakończ sesję</button>
+      </div>
+      <div id="import-status" style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem"></div>
+      <div id="import-names" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.5rem"></div>
+      <div style="font-size:11px;color:var(--color-text-secondary)">Panel odświeża się co 10 sekund automatycznie</div>
+      <div style="margin-top:.75rem">
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">Nie masz internetu? Wklej kod ręcznie:</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <textarea id="codes-input" rows="2" placeholder="Wklej kod zapasowy uczestnika..." style="flex:1;font-size:11px"></textarea>
+          <button class="btn sm" onclick="importCodes()">Dodaj</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem" id="ceo-tabs"></div>
+  <div id="ceo-detail"></div>
+  <div class="nav-row">
+    <button class="btn" onclick="goScreen(0)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Menu</button>
+    <button class="btn success" onclick="approve()"><i class="ti ti-check" aria-hidden="true"></i> Zatwierdź kalibrację i oblicz ACP</button>
+  </div>
+</div>
+
+<!-- S5: WYNIKI -->
+<div class="screen" id="s5">
+  <div style="font-size:16px;font-weight:600;margin-bottom:.25rem;color:var(--color-text-primary)">Kokpit CEO – wynik stress-testu</div>
+  <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem">OAC zmienia się dynamicznie każdy kwartał na podstawie wartości ACP (Reguła I): ACP &gt; 4,0 → OAC spada o 0,4 · ACP &lt; 1,0 → OAC rośnie o 0,2 · pozostałe → bez zmian.</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:1rem" id="res-metrics"></div>
+  <div style="margin-bottom:.5rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div id="oac-arrow"></div>
+    <div style="display:flex;gap:12px;font-size:11px;color:var(--color-text-secondary);flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:#185FA5;border-radius:2px;display:inline-block"></span>TII</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:#0F6E56;border-radius:2px;display:inline-block"></span>OAC (dynamiczne)</span>
+    </div>
+  </div>
+  <div style="position:relative;width:100%;height:230px;margin-bottom:6px"><canvas id="main-chart" role="img" aria-label="Wykres TII i OAC per kwartał – obszar między liniami zaznaczony kolorem gdy TII przekracza OAC"></canvas></div>
+  <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">ACP = TII − OAC per kwartał</div>
+  <div style="position:relative;width:100%;height:90px;margin-bottom:1rem"><canvas id="acp-chart" role="img" aria-label="ACP per kwartał – zielone poniżej 2, żółte 2-4, czerwone powyżej 4"></canvas></div>
+  <div style="overflow-x:auto;margin-bottom:1.25rem" id="res-table"></div>
+
+  <div style="margin-bottom:1.25rem">
+    <button class="btn" id="btn-model" onclick="toggleModel()" style="background:#EAF3DE;color:#27500A;border:.5px solid #3B6D11;font-size:12px">
+      <i class="ti ti-chart-line" aria-hidden="true"></i> Porównaj z modelem TRM
+    </button>
+    <span style="font-size:11px;color:var(--color-text-secondary);margin-left:8px" id="model-hint">Nakłada modelowy TII/OAC na wykres uczestników — tylko dla uruchomionych projektów</span>
+  </div>
+  <div id="model-panel" style="display:none;margin-bottom:1.25rem">
+    <div style="font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px">Porównanie: oceny zespołu vs model TRM</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:10px" id="model-metrics"></div>
+    <div style="position:relative;width:100%;height:240px;margin-bottom:4px"><canvas id="model-chart" role="img" aria-label="Porównanie TII uczestników i TII modelowego"></canvas></div>
+    <div style="position:relative;width:100%;height:90px;margin-bottom:10px"><canvas id="model-acp-chart" role="img" aria-label="Porównanie ACP uczestników i ACP modelowego"></canvas></div>
+    <div style="font-size:11px;color:var(--color-text-secondary);padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);line-height:1.65" id="model-comments"></div>
+  </div>
+
+  <div class="card" style="border-top:3px solid #185FA5;border-radius:0 var(--border-radius-lg) var(--border-radius-lg) 0">
+    <div class="sec-label"><i class="ti ti-git-compare" aria-hidden="true" style="font-size:13px"></i> Porównanie Kalibracji z Modelem</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.875rem;line-height:1.65">Poniższe obserwacje wynikają z porównania Waszej kalibracji z parametrami modelowymi TRM opartymi na literaturze naukowej. Traktuj je jako punkt wyjścia do dyskusji — nie jako ocenę.</div>
+
+    <div id="comp-comments" style="margin-bottom:1.25rem">
+      <!-- wypełniane dynamicznie przez buildCompComments() -->
+      <div style="font-size:12px;color:var(--color-text-secondary);font-style:italic">Komentarze pojawią się po zatwierdzeniu kalibracji i uruchomieniu porównania z modelem.</div>
+    </div>
+
+    <div style="font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:.625rem">Pytania do refleksji</div>
+    <div class="reflect-q">Czy coś byś zmienił/-a w swoim planie transformacji — sekwencję projektów, tempo, liczbę równoległych inicjatyw?</div>
+    <div class="reflect-q">Jakie działania mogłyby podnieść OAC? Oszacuj ich wpływ.</div>
+    <div class="reflect-q">W którym kwartale wynik najbardziej Cię zaskoczył i dlaczego?</div>
+    <div class="reflect-q" style="margin-bottom:1rem">Co powiedziałbyś/-abyś właścicielowi o tym planie po obejrzeniu tych wykresów?</div>
+
+    <textarea id="ceo-input" rows="5" placeholder="Wpisz swoje obserwacje i wnioski..."></textarea>
+    <div style="display:flex;justify-content:flex-end;margin-top:.75rem;gap:8px">
+      <button class="btn sm" onclick="goScreen(4)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Zmień kalibrację</button>
+      <button class="btn primary" onclick="saveInterp()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Zapisz interpretację</button>
+    </div>
+    <div id="interp-result"></div>
+  </div>
+  <div class="nav-row">
+    <button class="btn sm" onclick="goScreen(0)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Menu</button>
+    <button class="btn sm" onclick="exportPDF()" style="background:#185FA5;color:#E6F1FB;border-color:#185FA5"><i class="ti ti-file-type-pdf" aria-hidden="true"></i> Eksport PDF</button>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function sendPrompt(text){saveInterp();}
+function saveInterp(){
+  const txt=document.getElementById('ceo-input').value.trim();
+  if(!txt){alert('Wpisz interpretację przed zapisaniem.');return;}
+  const r=document.getElementById('interp-result');
+  if(r){r.innerHTML=`<div class="interp-note"><strong>Interpretacja zapisana.</strong><br><br>${txt.replace(/\n/g,'<br>')}</div>`;}
+}
+
+const PR=[
+  {name:'Zmniejszenie zatrudnienia o 30%',hint:'Program obejmuje ok. 200 etatów — pracownicy administracyjni i część magazynowa w dwóch oddziałach regionalnych. Część realizowana przez wygaszenie umów terminowych, część przez zwolnienia indywidualne. Kierowcy nie są objęci programem — bez nich nie ma operacji. Zakłada się, że odchodzą najmniej efektywni pracownicy, co wpływa na kulturę i dynamikę pozostałych.'},
+  {name:'Redukcja kosztów ogólnych 25–30%',hint:'Cięcia obejmują podwykonawstwo zewnętrzne, koszty administracyjne i szkolenia zawodowe. 120 pracowników ma obowiązek odnowienia certyfikatów wymaganych przepisami — zamrożenie budżetu szkoleniowego odkłada ten obowiązek, ale go nie eliminuje.'},
+  {name:'Reorganizacja modelu sprzedaży',hint:'Regionalne zespoły handlowe zastąpione modelem Key Account Management. Dotyczy bezpośrednio 24 handlowców — zmiana terytoriów, celów i przełożonych. Pośrednio wpływa na ok. 110 osób. Zmiana następuje w momencie, gdy firma właśnie utraciła dwóch kluczowych klientów.'},
+  {name:'Rewizja systemu wynagradzania',hint:'Zastąpienie premii uznaniowej premią wynikową powiązaną z mierzalnymi wskaźnikami. Zmiana obejmie 455 z 680 pracowników. Dla kierowców: bezpośrednie powiązanie wynagrodzenia z terminowością tras.'},
+  {name:'Optymalizacja sieci oddziałów',hint:'Konsolidacja lub zamknięcie jednego z czterech oddziałów regionalnych. Funkcje operacyjne przejęte przez sąsiedni oddział lub centralę. Dotyczy bezpośrednio ok. 90 pracowników oddziału.'},
+  {name:'Centralizacja funkcji wsparcia (CUW)',hint:'Funkcje HR, księgowości i zaopatrzenia z czterech oddziałów regionalnych koncentrowane w centrali w Łodzi. Spośród 44 pracowników: 26 otrzymuje propozycję przeniesienia, 18 — inne rozwiązania.'},
+  {name:'Wdrożenie systemu CRM',hint:'System już zakupiony — decyzji nie można cofnąć. Wdrożenie obejmie 68 użytkowników. Dotychczas: Excel i e-mail. Warunkuje efektywność P1 i P3.'},
+  {name:'Zmiana modelu zarządzania regionalnego',hint:'Funkcje operacyjne, sprzedażowe i administracyjne oddziałów przechodzą pod bezpośrednią podległość pionów centralnych. Dyrektorzy oddziałów pozostają jako koordynatorzy lokalni. Dotyczy bezpośrednio ok. 20 osób.'}
+];
+const MD=[
+  {v:1,l:'Kosmetyczny',        d:'Drobne korekty, bez zmiany kompetencji.',        dp:'Korekty w elementach rutyny. Rola i zakres bez zmian.'},
+  {v:2,l:'Optymalizacja',      d:'Nowe narzędzia, logika działania bez zmian.',    dp:'Nowy sposób pracy. Rola, przełożony i zakres bez zmian.'},
+  {v:3,l:'Reorganizacja',      d:'Istotna zmiana sposobu pracy, oduczanie nawyków.',dp:'Zmiana zakresu lub miejsca w strukturze. Zatrudnienie stabilne.'},
+  {v:4,l:'Transformacja',      d:'Głęboka zmiana ról i modelu operacyjnego.',      dp:'Zmiana roli i warunków zatrudnienia. Pozostaje w organizacji.'},
+  {v:5,l:'Zmiana paradygmatu', d:'Całkowita wymiana fundamentów działania.',       dp:'Utrata przynależności lub roli. Nowa tożsamość zawodowa.'}
+];
+const ED=[{v:0.8,l:'Gratyfikacja',d:'Zmiana korzystna'},{v:1.0,l:'Neutralny',d:'Brak wpływu na status'},{v:1.3,l:'Umiarkowany',d:'Nie zagraża pozycji'},{v:1.6,l:'Wysoki',d:'Uderza w autonomię'},{v:2.0,l:'Krytyczny',d:'Zagraża zatrudnieniu'}];
+const QN=8,OAC_BASE=4.5,THR=5.0;
+
+// ─── SUPABASE CONFIG ─────────────────────────────────────────────────
+const SB_URL='https://wqycwhuupmzpuujtxkft.supabase.co';
+const SB_KEY='sb_publishable_U2aFa6UGfTD0J1Mfaujafg__deXvuwD';
+let currentSessionId=null;
+
+function sbHeaders(){
+  return {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,
+          'Content-Type':'application/json','Prefer':'return=minimal'};
+}
+
+async function sbGet(table,params=''){
+  const r=await fetch(SB_URL+'/rest/v1/'+table+params,
+    {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+  return r.json();
+}
+
+async function sbPost(table,body){
+  const r=await fetch(SB_URL+'/rest/v1/'+table,
+    {method:'POST',headers:sbHeaders(),body:JSON.stringify(body)});
+  return r.ok;
+}
+
+async function sbDelete(table,params){
+  await fetch(SB_URL+'/rest/v1/'+table+params,
+    {method:'DELETE',headers:sbHeaders()});
+}
+
+function genSessionId(){
+  return 'TRM-'+Math.random().toString(36).substr(2,4).toUpperCase();
+}
+const LBL=['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8'];
+const S_OPTS=[5,10,15,20,25,30,40,50,60,70,80,90,100];
+function snapToS(v){return S_OPTS.reduce((b,o)=>Math.abs(o-v)<Math.abs(b-v)?o:b,50);}
+function nearestE(v){return ED.reduce((b,d)=>Math.abs(d.v-v)<Math.abs(b.v-v)?d:b,ED[0]).v;}
+
+// calib i SPR inicjowane po załadowaniu PR — czyste zera
+let calib=[];
+const SPR_M=[],SPR_S=[],SPR_E=[];
+function initCalib(){
+  calib=PR.map(()=>({e:1.0,active:Array(QN).fill(false),m:Array(QN).fill(3),s:Array(QN).fill(50)}));
+  SPR_M.length=0;SPR_S.length=0;SPR_E.length=0;
+  PR.forEach(()=>{SPR_M.push(Array.from({length:QN},()=>({mn:null,mx:null})));SPR_S.push(Array.from({length:QN},()=>({mn:null,mx:null})));SPR_E.push(0);});
+  allCodes=[];  // reset akumulatora kodów
+}
+
+let currentRole='participant',currentProj=0;
+let lastCode='';
+let allCodes=[];  // akumuluje wszystkie kody uczestników między importami
+let answers=PR.map(()=>({e:1.0,qs:1,qe:6,active:false,quarters:Array.from({length:QN},()=>({m:1,s:0.05}))}));
+let resultData=null,mChart=null,acpCh=null,cpj=0;
+
+function goScreen(n){document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n));}
+
+function setRole(r){
+  currentRole=r;
+  document.getElementById('rc-participant').classList.toggle('sel',r==='participant');
+  document.getElementById('rc-ceo').classList.toggle('sel',r==='ceo');
+  const ex=document.getElementById('role-extra');
+  if(r==='participant'){
+    const hasCode=lastCode.length>0;
+    ex.innerHTML=`<div class="card">
+      <div class="sec-label">Kod sesji</div>
+      <input type="text" id="inp-session" placeholder="np. TRM-A8F2" style="text-transform:uppercase;font-family:monospace;font-size:14px;letter-spacing:.1em" maxlength="8">
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-top:4px;margin-bottom:12px">Kod otrzymasz od CEO / Moderatora</div>
+      <div class="sec-label">Imię uczestnika</div>
+      <input type="text" id="inp-name" placeholder="np. Anna">
+      <div class="nav-row" style="margin-top:12px">
+        <button class="btn primary" onclick="startPart()">Rozpocznij ocenę <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+      </div>
+    </div>`;
+  } else {
+    ex.innerHTML=`<div class="card">
+      <div class="sec-label">Sesja warsztatowa</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn primary" onclick="createSessionAndGo()"><i class="ti ti-plus" aria-hidden="true"></i> Utwórz nową sesję</button>
+        <span style="font-size:12px;color:var(--color-text-secondary);align-self:center">lub dołącz do istniejącej:</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="join-session-home" placeholder="TRM-XXXX" style="width:130px;font-family:monospace;text-transform:uppercase;font-size:13px;letter-spacing:.08em" maxlength="8">
+        <button class="btn" onclick="joinSessionAndGo()">Dołącz</button>
+      </div>
+    </div>`;
+  }
+}
+
+function startPart(){
+  const n=document.getElementById('inp-name')?.value.trim();
+  const sid=document.getElementById('inp-session')?.value.trim().toUpperCase();
+  if(!sid||sid.length<4){alert('Wpisz kod sesji otrzymany od CEO.');return;}
+  if(!n){alert('Wpisz imię.');return;}
+  currentSessionId=sid;
+  answers=PR.map(()=>({e:1.0,qs:1,qe:6,active:false,quarters:Array.from({length:QN},()=>({m:1,s:0.05}))}));
+  currentProj=0;
+  goScreen(1);renderDots();loadProj(0);
+}
+function startCEO(){goScreen(4);renderCEOTabs();renderCEODetail();}
+
+function createSession(){
+  const sid=genSessionId();
+  currentSessionId=sid;
+  activateSession(sid);
+}
+
+function createSessionAndGo(){
+  const sid=genSessionId();
+  currentSessionId=sid;
+  goScreen(4);renderCEOTabs();renderCEODetail();
+  activateSession(sid);
+}
+
+function joinSessionAndGo(){
+  const sid=document.getElementById('join-session-home')?.value.trim().toUpperCase();
+  if(!sid||sid.length<4){alert('Wpisz kod sesji.');return;}
+  currentSessionId=sid;
+  goScreen(4);renderCEOTabs();renderCEODetail();
+  activateSession(sid);
+}
+
+function joinSession(){
+  const sid=document.getElementById('join-session-input')?.value.trim().toUpperCase();
+  if(!sid||sid.length<4){alert('Wpisz kod sesji.');return;}
+  currentSessionId=sid;
+  activateSession(sid);
+}
+
+function activateSession(sid){
+  currentSessionId=sid;
+  document.getElementById('ceo-session-panel').style.display='none';
+  document.getElementById('ceo-active-session').style.display='block';
+  document.getElementById('ceo-session-code').textContent=sid;
+  refreshResponses();
+  // Auto-odświeżanie co 10 sekund
+  if(window._refreshTimer) clearInterval(window._refreshTimer);
+  window._refreshTimer=setInterval(refreshResponses,10000);
+}
+
+function copySessionCode(){
+  const code=document.getElementById('ceo-session-code')?.textContent||'';
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=document.querySelector('[onclick="copySessionCode()"]');
+    if(btn){const orig=btn.innerHTML;btn.innerHTML='✅ Skopiowano';setTimeout(()=>btn.innerHTML=orig,2000);}
+  }).catch(()=>{alert('Kod sesji: '+code);});
+}
+
+async function refreshResponses(){
+  if(!currentSessionId) return;
+  const btn=document.getElementById('refresh-btn');
+  if(btn) btn.style.opacity='0.5';
+  try{
+    const rows=await sbGet('responses','?session_id=eq.'+currentSessionId+'&select=participant_name,data,created_at&order=created_at.asc');
+    if(!Array.isArray(rows)){
+      document.getElementById('import-status').textContent='Błąd połączenia z bazą.';
+      return;
+    }
+    if(rows.length===0){
+      document.getElementById('import-status').textContent='Czekam na uczestników...';
+      document.getElementById('import-names').innerHTML='';
+      return;
+    }
+    const parts=rows.map(r=>r.data);
+    applyImportedData(parts);
+    const n=parts.length;
+    document.getElementById('import-status').textContent=
+      `Łącznie: ${n} uczestnik${n===1?'':n<5?'ów':'ów'} · ostatnia aktualizacja: ${new Date().toLocaleTimeString('pl-PL')}`;
+    document.getElementById('import-status').style.color='#3B6D11';
+    renderParticipantBadges(parts);
+  }catch(e){
+    document.getElementById('import-status').textContent='Brak połączenia.';
+  }
+  if(btn) btn.style.opacity='1';
+}
+
+async function clearSession(){
+  if(!currentSessionId) return;
+  if(!confirm('Zakończyć sesję '+currentSessionId+'? Dane uczestników zostaną usunięte z serwera.')) return;
+  await sbDelete('responses','?session_id=eq.'+currentSessionId);
+  await sbDelete('sessions','?id=eq.'+currentSessionId);
+  if(window._refreshTimer) clearInterval(window._refreshTimer);
+  currentSessionId=null;
+  document.getElementById('ceo-session-panel').style.display='block';
+  document.getElementById('ceo-active-session').style.display='none';
+  document.getElementById('import-status').textContent='';
+  document.getElementById('import-names').innerHTML='';
+  initCalib(); renderCEOTabs(); renderCEODetail();
+}
+
+function renderDots(){
+  document.getElementById('p-dots').innerHTML=PR.map((_,i)=>`<div class="dot ${i<currentProj?'done':i===currentProj?'active':''}"></div>`).join('');
+  document.getElementById('p-prog').textContent='Projekt '+(currentProj+1)+' z '+PR.length;
+}
+
+function loadProj(idx){
+  currentProj=idx;renderDots();
+  const p=PR[idx],a=answers[idx];
+  const ei=ED.reduce((bi,d,i)=>Math.abs(d.v-a.e)<Math.abs(ED[bi].v-a.e)?i:bi,0);
+  document.getElementById('proj-area').innerHTML=`
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;color:var(--color-text-primary);margin-bottom:.25rem">${p.name}</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1.25rem;line-height:1.55">${p.hint}</div>
+      <div style="margin-bottom:1.25rem">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:1.5px solid ${a.active?'#185FA5':'var(--color-border-secondary)'}">
+          <input type="checkbox" id="act-${idx}" ${a.active?'checked':''} onchange="setActive(${idx},this.checked)" style="width:18px;height:18px;cursor:pointer;accent-color:#185FA5">
+          <span style="font-size:13px;font-weight:500;color:var(--color-text-primary)">Uruchamiam ten projekt w transformacji</span>
+        </label>
+      </div>
+      <div id="proj-params-${idx}" style="${a.active?'':'opacity:0.35;pointer-events:none'}">
+        <div class="sec-label">Ryzyko emocjonalne (E) – stałe dla całego projektu</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px" id="ep-${idx}">
+          ${ED.map((d,i)=>`<div class="def-pill ${i===ei?'ap':''}" onclick="setE(${idx},${d.v})"><strong>${d.v}</strong> – ${d.l}</div>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+          <input type="range" min="0.8" max="2.0" step="0.1" value="${a.e}" id="sle" oninput="setE(${idx},+this.value)" style="flex:1">
+          <span id="eval-${idx}" style="font-size:14px;font-weight:600;color:#185FA5;min-width:48px;text-align:right">E = ${a.e.toFixed(1)}</span>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-secondary)" id="edesc">${ED[ei].d}</div>
+        <span class="elabel"><i class="ti ti-lock" aria-hidden="true" style="font-size:12px"></i> E jest stałe – rygor metodyczny TRM</span>
+        <div style="margin-top:1.25rem" class="sec-label">Czas trwania i plan kwartalny</div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.75rem;line-height:1.5;padding:6px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)"><strong style="color:var(--color-text-primary)">Zasięg (S)</strong> – odsetek pracowników dla których ta zmiana ma znaczenie, niezależnie od tego czy dotyka ich bezpośrednio czy przeżywają ją pośrednio przez obserwację i ocenę.</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:.25rem">
+          <span>Start: <strong style="color:#185FA5" id="qsl">Q${a.qs}</strong></span>
+          <span>Koniec: <strong style="color:#185FA5" id="qel">Q${a.qe}</strong></span>
+        </div>
+        <div class="rtrack"><div class="rbg"></div><div class="rfill" id="rf${idx}"></div>
+          <input type="range" min="1" max="${QN}" step="1" value="${a.qs}" id="sqs${idx}" oninput="setSQS(${idx})">
+          <input type="range" min="1" max="${QN}" step="1" value="${a.qe}" id="sqe${idx}" oninput="setSQE(${idx})">
+        </div>
+        <div class="qmarks">${LBL.map(l=>`<span>${l}</span>`).join('')}</div>
+        <div style="overflow-x:auto"><table class="qtbl">
+          <thead><tr>
+            <th>Q</th>
+            <th>Magnituda (M)<div style="font-size:9px;font-weight:400;color:var(--color-text-secondary);margin-top:2px;line-height:1.4">Głębokość zmiany tożsamości zawodowej pracownika</div></th>
+            <th>Zasięg (S)<div style="font-size:9px;font-weight:400;color:var(--color-text-secondary);margin-top:2px;line-height:1.4">Odsetek pracowników dla których zmiana ma znaczenie – bezpośrednio lub pośrednio</div></th>
+          </tr></thead>
+          <tbody id="qtb${idx}"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="nav-row">
+      ${idx>0?`<button class="btn" onclick="loadProj(${idx-1})"><i class="ti ti-arrow-left" aria-hidden="true"></i> Poprzedni</button>`:'<div></div>'}
+      ${idx<PR.length-1?`<button class="btn primary" onclick="loadProj(${idx+1})">Następny <i class="ti ti-arrow-right" aria-hidden="true"></i></button>`:`<button class="btn success" onclick="showSum()"><i class="ti ti-list-check" aria-hidden="true"></i> Podsumuj</button>`}
+    </div>`;
+  updFill(idx);renderQT(idx);
+}
+
+function updFill(idx){const a=answers[idx],f=document.getElementById('rf'+idx);if(!f)return;const p1=((a.qs-1)/(QN-1))*100,p2=((a.qe-1)/(QN-1))*100;f.style.left=p1+'%';f.style.width=(p2-p1)+'%';const ql=document.getElementById('qsl'),qr=document.getElementById('qel');if(ql)ql.textContent='Q'+a.qs;if(qr)qr.textContent='Q'+a.qe;}
+function setSQS(idx){let qs=+document.getElementById('sqs'+idx).value,qe=answers[idx].qe;if(qs>qe){qe=qs;document.getElementById('sqe'+idx).value=qe;}answers[idx].qs=qs;answers[idx].qe=qe;updFill(idx);renderQT(idx);}
+function setSQE(idx){let qe=+document.getElementById('sqe'+idx).value,qs=answers[idx].qs;if(qe<qs){qs=qe;document.getElementById('sqs'+idx).value=qs;}answers[idx].qs=qs;answers[idx].qe=qe;updFill(idx);renderQT(idx);}
+
+function renderQT(idx){
+  const a=answers[idx],tb=document.getElementById('qtb'+idx);if(!tb)return;
+  let h='';
+  for(let qi=a.qs-1;qi<=a.qe-1;qi++){
+    const q=a.quarters[qi],mdef=MD.find(d=>d.v===q.m);
+    h+=`<tr>
+      <td style="padding:7px 8px;font-weight:600;font-size:12px;white-space:nowrap">Q${qi+1}</td>
+      <td style="padding:7px 8px">
+        <input type="range" min="1" max="5" step="1" value="${q.m}" style="width:100%;display:block;margin-bottom:2px" oninput="setQM(${idx},${qi},+this.value)">
+        <div style="display:flex;justify-content:space-between;padding:0 10px;font-size:9px;color:var(--color-text-secondary);line-height:1.2;user-select:none">
+          <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);margin-top:3px"><span id="mv${idx}${qi}">${q.m}</span> – <span class="mdesc" id="md${idx}${qi}">${mdef.l}</span></div>
+      </td>
+      <td style="padding:7px 8px">
+        <input type="range" min="0.05" max="1.0" step="0.05" value="${q.s}" style="width:100%;display:block;margin-bottom:2px" oninput="setQSv(${idx},${qi},+this.value)">
+        <div style="display:flex;justify-content:space-between;padding:0 10px;font-size:9px;color:var(--color-text-secondary);line-height:1.2;user-select:none">
+          <span>5%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);margin-top:3px"><span id="sv${idx}${qi}">${Math.round(q.s*100)}%</span></div>
+      </td>
+    </tr>
+    <tr id="dpr${idx}${qi}">
+      <td colspan="3" style="padding:2px 8px 8px 8px;border-bottom:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:11px;color:var(--color-text-secondary);line-height:1.4;padding:4px 8px;background:var(--color-background-secondary);border-radius:4px;min-height:1.8em" id="mdp${idx}${qi}">${mdef.dp||''}</div>
+      </td>
+    </tr>\``;
+  }
+  tb.innerHTML=h;
+}
+function setActive(pi,v){
+  answers[pi].active=v;
+  const params=document.getElementById('proj-params-'+pi);
+  if(params){params.style.opacity=v?'1':'0.35';params.style.pointerEvents=v?'':'none';}
+  renderDots();
+}
+function setQM(pi,qi,v){answers[pi].quarters[qi].m=v;const e=document.getElementById('mv'+pi+qi),d=document.getElementById('md'+pi+qi),dp=document.getElementById('mdp'+pi+qi);if(e)e.textContent=v;const m=MD.find(x=>x.v===v);if(d&&m)d.textContent=m.l;if(dp&&m)dp.textContent=m.dp||'';}
+function setQSv(pi,qi,v){answers[pi].quarters[qi].s=v;const e=document.getElementById('sv'+pi+qi);if(e)e.textContent=Math.round(v*100)+'%';}
+function setE(pi,v){
+  const rv=Math.round(v*10)/10;
+  answers[pi].e=rv;
+  const sl=document.getElementById('sle');if(sl)sl.value=rv;
+  // Zawsze podświetl najbliższy pill — niezależnie od dokładności
+  const ei=ED.reduce((bi,d,i)=>Math.abs(d.v-rv)<Math.abs(ED[bi].v-rv)?i:bi,0);
+  document.querySelectorAll('#ep-'+pi+' .def-pill').forEach((el,i)=>el.classList.toggle('ap',i===ei));
+  const ed=document.getElementById('edesc');if(ed)ed.textContent=ED[ei].d;
+  // Pokaż dokładną wybraną wartość
+  const ev=document.getElementById('eval-'+pi);if(ev)ev.textContent='E = '+rv.toFixed(1);
+}
+
+function showSum(){
+  goScreen(2);let h='';
+  const active=answers.filter(a=>a.active);
+  if(active.length===0){
+    h='<div class="card" style="color:var(--color-text-secondary);font-size:13px">Nie uruchomiono żadnego projektu. Wróć i zaznacz co najmniej jeden projekt.</div>';
+  } else {
+    PR.forEach((p,pi)=>{
+      const a=answers[pi];
+      if(!a.active) return;
+      const el=ED.find(d=>Math.abs(d.v-a.e)<0.05)?.l||'';
+      let rows='';
+      for(let qi=a.qs-1;qi<=a.qe-1;qi++){const q=a.quarters[qi];const m=MD.find(d=>d.v===q.m);rows+=`<tr><td style="padding:4px 8px;border-bottom:0.5px solid rgba(0,0,0,0.08);font-size:12px;font-weight:600">Q${qi+1}</td><td style="padding:4px 8px;border-bottom:0.5px solid rgba(0,0,0,0.08);font-size:12px">${q.m} – ${m.l}</td><td style="padding:4px 8px;border-bottom:0.5px solid rgba(0,0,0,0.08);font-size:12px">${Math.round(q.s*100)}%</td></tr>`;}
+      h+=`<div class="card" style="margin-bottom:.75rem"><div style="font-size:13px;font-weight:600;margin-bottom:.25rem">${p.name}</div><div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:.625rem">E = ${a.e.toFixed(1)} – ${el} | Q${a.qs}–Q${a.qe}</div><table style="width:100%;border-collapse:collapse"><thead><tr><th style="padding:4px 8px;font-size:10px;font-weight:600;color:var(--color-text-secondary);text-align:left;border-bottom:0.5px solid rgba(0,0,0,0.1)">Q</th><th style="padding:4px 8px;font-size:10px;font-weight:600;color:var(--color-text-secondary);text-align:left;border-bottom:0.5px solid rgba(0,0,0,0.1)">M</th><th style="padding:4px 8px;font-size:10px;font-weight:600;color:var(--color-text-secondary);text-align:left;border-bottom:0.5px solid rgba(0,0,0,0.1)">S</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    });
+  }
+  document.getElementById('sum-area').innerHTML=h;
+}
+
+async function submitPart(){
+  goScreen(3);
+  const sd=document.getElementById('session-display');
+  if(sd) sd.textContent=currentSessionId||'—';
+  const name=document.getElementById('inp-name')?.value||'?';
+  const data={n:name,a:answers.map(a=>({e:a.e,qs:a.qs,qe:a.qe,active:a.active,q:a.quarters.map(q=>({m:q.m,s:Math.round(q.s*100)}))}))};
+  // Wyślij do Supabase
+  const statusEl=document.getElementById('submit-status');
+  if(statusEl)statusEl.textContent='Wysyłanie...';
+  try{
+    const ok=await sbPost('responses',{session_id:currentSessionId,participant_name:name,data:data});
+    if(statusEl)statusEl.textContent=ok?'✅ Wyniki wysłane do CEO':'⚠️ Błąd wysyłania — skopiuj kod ręcznie';
+    if(!ok){
+      // Fallback: pokaż kod ręczny
+      const code=btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/=/g,'');
+      lastCode=code;
+      const el=document.getElementById('part-code');
+      if(el)el.value=code;
+      const fb1=document.getElementById('fallback-code');if(fb1)fb1.style.display='block';
+      const cb=document.getElementById('copy-btn');if(cb)cb.style.display='block';
+    }
+  }catch(e){
+    if(statusEl)statusEl.textContent='⚠️ Brak połączenia — skopiuj kod ręcznie';
+    const code=btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/=/g,'');
+    lastCode=code;
+    const el=document.getElementById('part-code');
+    if(el)el.value=code;
+    const fb2=document.getElementById('fallback-code');if(fb2)fb2.style.display='block';
+    const cb=document.getElementById('copy-btn');if(cb)cb.style.display='block';
+  }
+}
+
+function copyCode(){
+  const ta=document.getElementById('part-code');
+  if(!ta)return;
+  ta.select();ta.setSelectionRange(0,99999);
+  let ok=false;
+  try{ok=document.execCommand('copy');}catch(e){}
+  if(!ok&&navigator.clipboard){navigator.clipboard.writeText(ta.value).then(()=>{ok=true;showCopied();}).catch(()=>{});}
+  if(ok)showCopied();
+}
+function showCopied(){const c=document.getElementById('copy-confirm');if(c){c.style.display='block';setTimeout(()=>c.style.display='none',3000);}}
+function resetForNext(){answers=PR.map(()=>({e:1.0,qs:1,qe:6,active:false,quarters:Array.from({length:QN},()=>({m:1,s:0.05}))}));currentProj=0;const ni=document.getElementById('inp-name');if(ni)ni.value='';goScreen(0);setRole('participant');}
+
+function resetSession(){
+  if(!confirm('Czy na pewno chcesz rozpoczac nowa sesje? Wszystkie dane zostana usuniete.')) return;
+  answers=PR.map(()=>({e:1.0,qs:1,qe:6,active:false,quarters:Array.from({length:QN},()=>({m:1,s:0.05}))}));
+  currentProj=0;
+  const ni=document.getElementById('inp-name');if(ni)ni.value='';
+  initCalib();
+  resultData=null;
+  if(mChart){mChart.destroy();mChart=null;}
+  if(acpCh){acpCh.destroy();acpCh=null;}
+  if(calibMChart){calibMChart.destroy();calibMChart=null;}
+  if(calibSChart){calibSChart.destroy();calibSChart=null;}
+  const ta=document.getElementById('codes-input');if(ta)ta.value='';
+  const st=document.getElementById('import-status');if(st){st.textContent='';st.style.color='';}
+  const nm=document.getElementById('import-names');if(nm)nm.innerHTML='';
+  allCodes=[];
+  goScreen(0);setRole('participant');
+}
+
+function importCodes(){
+  const raw=document.getElementById('codes-input').value.trim();
+  if(!raw){alert('Wklej przynajmniej jeden kod.');return;}
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const newParsed=[],errors=[];
+  lines.forEach((line,i)=>{
+    if(allCodes.includes(line)){return;}  // duplikat — pomijamy
+    try{
+      const pad=line.length%4?line+'='.repeat(4-line.length%4):line;
+      const json=decodeURIComponent(escape(atob(pad)));
+      const d=JSON.parse(json);
+      if(d&&d.a&&d.a.length===PR.length){newParsed.push({code:line,data:d});}
+      else{console.warn('Struktura kodu niepoprawna — d.a.length=',d&&d.a?d.a.length:'brak',', oczekiwano',PR.length);errors.push(i+1);}
+    }catch(e){console.error('Błąd dekodowania kodu '+(i+1)+':',e.message);errors.push(i+1);}
+  });
+  if(newParsed.length===0&&errors.length===0){
+    const st=document.getElementById('import-status');
+    st.textContent='Ten kod został już wczytany. Wklej kod kolejnego uczestnika.';st.style.color='#854F0B';
+    document.getElementById('codes-input').value='';return;
+  }
+  if(newParsed.length===0){
+    const st=document.getElementById('import-status');
+    st.textContent='Nie udało się odczytać kodu. Sprawdź czy kod jest kompletny i spróbuj ponownie.';
+    st.style.color='#A32D2D';return;
+  }
+  // Dodaj nowe kody do akumulatora
+  newParsed.forEach(p=>allCodes.push(p.code));
+  // Agreguj WSZYSTKICH uczestników łącznie
+  const allParsed=allCodes.map(code=>{
+    try{const p=code.length%4?code+'='.repeat(4-code.length%4):code;return JSON.parse(decodeURIComponent(escape(atob(p))));}catch(e){return null;}
+  }).filter(Boolean);
+  applyImportedData(allParsed);
+  const st=document.getElementById('import-status');
+  const n=allParsed.length;
+  st.textContent=`Łącznie: ${n} uczestnik${n===1?'':n<5?'ów':'ów'}${errors.length?' | Błędne: '+errors.join(', '):''}`;
+  st.style.color=errors.length?'#854F0B':'#3B6D11';
+  renderParticipantBadges(allParsed);
+  document.getElementById('codes-input').value='';
+}
+
+function renderParticipantBadges(parts){
+  document.getElementById('import-names').innerHTML=parts.map(p=>`<span style="font-size:11px;padding:2px 8px;background:#EAF3DE;color:#3B6D11;border-radius:5px;font-weight:600">${p.n||'?'}</span>`).join('');
+}
+
+function applyImportedData(parts){
+  for(let pi=0;pi<PR.length;pi++){
+    // Filtruj tylko uczestników którzy aktywowali ten projekt
+    const activeParts=parts.filter(p=>p.a[pi].active===true);
+    // avgE tylko z aktywnych — nieaktywni nie wpływają na ocenę projektu
+    const eVals=activeParts.length?activeParts.map(p=>p.a[pi].e):parts.map(p=>p.a[pi].e);
+    const avgE=+(eVals.reduce((a,b)=>a+b,0)/eVals.length).toFixed(3);
+    const projActive=activeParts.length>0;
+    // Kwartał aktywny gdy KTÓRYKOLWIEK uczestnik go uruchomił
+    // M i S per kwartał — średnia tylko z uczestników aktywnych w tym kwartale
+    const active=Array.from({length:QN},(_,qi)=>{
+      return projActive&&activeParts.some(p=>qi>=p.a[pi].qs-1&&qi<=p.a[pi].qe-1);
+    });
+    const mVals=Array.from({length:QN},(_,qi)=>{
+      const vals=activeParts.filter(p=>qi>=p.a[pi].qs-1&&qi<=p.a[pi].qe-1).map(p=>p.a[pi].q[qi]?.m||3);
+      return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):3;
+    });
+    const sVals=Array.from({length:QN},(_,qi)=>{
+      const vals=activeParts.filter(p=>qi>=p.a[pi].qs-1&&qi<=p.a[pi].qe-1).map(p=>p.a[pi].q[qi]?.s||50);
+      return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):50;
+    });
+    calib[pi]={e:avgE,active,m:mVals,s:sVals};
+    for(let qi=0;qi<QN;qi++){
+      const mAll=activeParts.filter(p=>qi>=p.a[pi].qs-1&&qi<=p.a[pi].qe-1).map(p=>p.a[pi].q[qi]?.m||3);
+      const sAll=activeParts.filter(p=>qi>=p.a[pi].qs-1&&qi<=p.a[pi].qe-1).map(p=>p.a[pi].q[qi]?.s||50);
+      SPR_M[pi][qi]=mAll.length>1?{mn:Math.min(...mAll),mx:Math.max(...mAll)}:{mn:null,mx:null};
+      SPR_S[pi][qi]=sAll.length>1?{mn:Math.min(...sAll),mx:Math.max(...sAll)}:{mn:null,mx:null};
+    }
+    const eAll=activeParts.length?activeParts.map(p=>p.a[pi].e):parts.map(p=>p.a[pi].e);
+    SPR_E[pi]=eAll.length>1?+(Math.max(...eAll)-Math.min(...eAll)).toFixed(1):0;
+  }
+  renderCEOTabs();renderCEODetail();
+}
+
+
+
+function renderCEOTabs(){
+  const wc=(pi)=>{const ms=Math.max(...SPR_M[pi].map((v,qi)=>calib[pi].active[qi]&&v&&v.mn!=null?v.mx-v.mn:0));const ss=Math.max(...SPR_S[pi].map((v,qi)=>calib[pi].active[qi]&&v&&v.mn!=null?v.mx-v.mn:0));const e=SPR_E[pi];const wm=ms<=0.5?0:ms<=1.0?1:2,ws=ss<=10?0:ss<=20?1:2,we=e<=0.2?0:e<=0.39?1:2;return Math.max(wm,ws,we)===0?'wg':Math.max(wm,ws,we)===1?'wa':'wr';};
+  document.getElementById('ceo-tabs').innerHTML=PR.map((p,i)=>`<button class="proj-tab ${wc(i)}${i===cpj?' on':''}" onclick="cpj=${i};renderCEOTabs();renderCEODetail()">${p.name.split(' ').slice(0,3).join(' ')}…</button>`).join('');
+}
+
+function renderCEODetail(){
+  const pi=cpj,c=calib[pi];
+  // Zawsze znajdź najbliższy pill E — nawet gdy e jest wartością pośrednią
+  const ei=ED.reduce((bi,d,i)=>Math.abs(d.v-c.e)<Math.abs(ED[bi].v-c.e)?i:bi,0);
+  const eSpan=SPR_E[pi],eC=eSpan<=0.2?'sp-g':eSpan<=0.39?'sp-a':'sp-r';
+  const eLabel=eSpan<=0.2?'Zgodność':eSpan<=0.39?'Rozbieżności':'Istotne różnice';
+  let rows='';
+  c.active.forEach((act,qi)=>{
+    if(!act)return;
+    const mSpr=SPR_M[pi][qi],sSpr=SPR_S[pi][qi];
+    const msSpread=mSpr&&mSpr.mn!=null?+(mSpr.mx-mSpr.mn).toFixed(1):0;
+    const ssSpread=sSpr&&sSpr.mn!=null?Math.round(sSpr.mx-sSpr.mn):0;
+    const mc=msSpread<=0.5?'sp-g':msSpread<=1.0?'sp-a':'sp-r';
+    const sc=ssSpread<=10?'sp-g':ssSpread<=20?'sp-a':'sp-r';
+    const ml=msSpread<=0.5?'Zgodność':msSpread<=1.0?'Rozbieżności':'Istotne różnice';
+    const sl=ssSpread<=10?'Zgodność':ssSpread<=20?'Rozbieżności':'Istotne różnice';
+    const msLabel=mSpr&&mSpr.mn!=null?`${mSpr.mn}–${mSpr.mx}`:'—';
+    const ssLabel=sSpr&&sSpr.mn!=null?`${sSpr.mn}–${sSpr.mx}%`:'—';
+    rows+=`<tr>
+      <td style="padding:7px 10px;font-weight:600;font-size:12px">Q${qi+1}</td>
+      <td style="padding:7px 10px"><div style="display:flex;align-items:center;gap:7px"><select onchange="calib[${pi}].m[${qi}]=+this.value" style="width:140px">${[1,2,3,4,5].map(v=>`<option value="${v}" ${c.m[qi]===v?'selected':''}>${v} – ${MD[v-1].l}</option>`).join('')}</select><span class="${mc}">${ml}: ${msLabel}</span></div></td>
+      <td style="padding:7px 10px"><div style="display:flex;align-items:center;gap:7px"><select onchange="calib[${pi}].s[${qi}]=+this.value" style="width:100px">${S_OPTS.map(v=>`<option value="${v}" ${c.s[qi]===v?'selected':''}>${v}%</option>`).join('')}</select><span class="${sc}">${sl}: ${ssLabel}</span></div></td>
+    </tr>`;
+  });
+  document.getElementById('ceo-detail').innerHTML=`<div class="card">
+    <div style="font-size:14px;font-weight:600;margin-bottom:.875rem">${PR[pi].name}</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.625rem;line-height:1.5">E = <strong style="color:var(--color-text-primary)">${c.e.toFixed(2)}</strong> (dokładna średnia uczestników)</div>
+    <div class="sec-label">Ryzyko emocjonalne (E) – kliknij aby zmienić</div>
+    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:.875rem">
+      ${ED.map((d,i)=>`<div class="def-pill ${i===ei?'ap':''}" onclick="calib[${pi}].e=${d.v};renderCEODetail()">${d.v} – ${d.l}</div>`).join('')}
+      <span class="${eC}">${eLabel}: ${eSpan.toFixed(1)}</span>
+    </div>
+    <div class="sec-label">Aktywne kwartały</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.875rem">
+      ${Array.from({length:QN},(_,qi)=>`<button class="btn sm${c.active[qi]?' success':''}" onclick="togQ(${pi},${qi})">${c.active[qi]?'✓ ':''} Q${qi+1}</button>`).join('')}
+    </div>
+    <div class="sec-label">Kalibracja M i S per kwartał <span style="font-weight:400;color:var(--color-text-secondary);font-size:10px">(rozpiętości generowane automatycznie)</span></div>
+    <div style="overflow-x:auto"><table class="rtbl"><thead><tr><th style="text-align:left">Q</th><th style="text-align:left">Magnituda (M) — zmiana w org / dla pracownika</th><th style="text-align:left">Zasięg (S)</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem">
+      <div>
+        <div style="font-size:10px;font-weight:600;color:#185FA5;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Magnituda (M) — średnia i korytarz rozbieżności</div>
+        <div style="position:relative;height:140px"><canvas id="calib-m-chart"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:#854F0B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Zasięg (S) — średnia i korytarz rozbieżności</div>
+        <div style="position:relative;height:140px"><canvas id="calib-s-chart"></canvas></div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--color-text-secondary);margin-top:6px">Linia = średnia zespołu &nbsp;·&nbsp; Szary obszar = rozstęp min–max między uczestnikami</div>
+  </div>`;
+  requestAnimationFrame(()=>renderCalibCharts(pi));
+}
+
+function togQ(pi,qi){calib[pi].active[qi]=!calib[pi].active[qi];if(calib[pi].active[qi]){if(!calib[pi].m[qi])calib[pi].m[qi]=3;if(!calib[pi].s[qi])calib[pi].s[qi]=50;}renderCEODetail();}
+
+
+// ─── MODEL TRM — parametry modelowe dla 8 projektów ─────────────────
+// Każdy projekt: E modelowe, fazy z M i S per kwartał projektu
+// Model startuje od kwartału uruchomienia przez uczestników
+const PROJECTS_MODEL = [
+  {id:'P1',E:2.0,phases:[{m:2,s:0.45},{m:5,s:0.95},{m:5,s:0.90},{m:3,s:0.60},{m:2,s:0.40},{m:1,s:0.20},{m:1,s:0.15},{m:1,s:0.10}]},
+  {id:'P2',E:1.6,phases:[{m:2,s:0.50},{m:3,s:0.65},{m:3,s:0.60},{m:4,s:0.55},{m:2,s:0.30},{m:1,s:0.15}]},
+  {id:'P3',E:1.6,phases:[{m:2,s:0.25},{m:4,s:0.55},{m:3,s:0.45},{m:3,s:0.35},{m:2,s:0.25},{m:1,s:0.15}]},
+  {id:'P4',E:2.0,phases:[{m:2,s:0.70},{m:4,s:0.90},{m:4,s:0.85},{m:3,s:0.65},{m:2,s:0.40},{m:1,s:0.25},{m:1,s:0.15},{m:1,s:0.10}]},
+  {id:'P5',E:1.6,phases:[{m:2,s:0.20},{m:4,s:0.50},{m:3,s:0.35},{m:2,s:0.20},{m:1,s:0.15},{m:1,s:0.10}]},
+  {id:'P6',E:1.6,phases:[{m:2,s:0.15},{m:4,s:0.35},{m:3,s:0.30},{m:2,s:0.15},{m:1,s:0.10}]},
+  {id:'P7',E:1.0,phases:[{m:2,s:0.15},{m:3,s:0.30},{m:2,s:0.20},{m:1,s:0.10}]},
+  {id:'P8',E:1.6,phases:[{m:3,s:0.15},{m:4,s:0.45},{m:3,s:0.40},{m:2,s:0.20},{m:1,s:0.10}]},
+];
+
+let modelVisible = false;
+let mCompChart = null, mCompAcp = null;
+
+function toggleModel(){
+  modelVisible = !modelVisible;
+  const panel = document.getElementById('model-panel');
+  const btn   = document.getElementById('btn-model');
+  if(!panel) return;
+  if(modelVisible){
+    panel.style.display = 'block';
+    btn.style.background = '#27500A';
+    btn.style.color = '#EAF3DE';
+    btn.innerHTML = '<i class="ti ti-chart-line" aria-hidden="true"></i> Ukryj model TRM';
+    buildModelComparison();
+  } else {
+    panel.style.display = 'none';
+    btn.style.background = '#EAF3DE';
+    btn.style.color = '#27500A';
+    btn.innerHTML = '<i class="ti ti-chart-line" aria-hidden="true"></i> Porównaj z modelem TRM';
+  }
+}
+
+function simulateModel(){
+  // Dla każdego projektu znajdź Q startowy z kalibracji
+  // (pierwszy aktywny kwartał w calib[pi])
+  let debt=0, oac=OAC_BASE;
+  const qrs=[];
+  for(let q=0;q<QN;q++){
+    let base=0;
+    PROJECTS_MODEL.forEach((proj,pi)=>{
+      // znajdź startQ: pierwszy aktywny kwartał tego projektu
+      const startQ = calib[pi].active.findIndex(a=>a);
+      if(startQ === -1) return; // projekt nieaktywowany
+      const phIdx = q - startQ;
+      if(phIdx<0||phIdx>=proj.phases.length) return;
+      const ph=proj.phases[phIdx];
+      base += (ph.m * ph.s * proj.E)/3;
+    });
+    const din=debt;
+    const tot=Math.min(base+din,10);
+    const acp=+(tot-oac).toFixed(2);
+    const nd=tot>THR?+(tot-THR).toFixed(4):0;
+    qrs.push({q:q+1,base:+base.toFixed(2),din:+din.toFixed(2),tot:+tot.toFixed(2),oac:+oac.toFixed(2),acp,debt:+nd.toFixed(2)});
+    debt=nd;
+    if(acp>4.0) oac=Math.max(1.0,+(oac-0.4).toFixed(2));
+    else if(acp<1.0) oac=Math.min(10.0,+(oac+0.2).toFixed(2));
+  }
+  return qrs;
+}
+
+function buildModelComparison(){
+  if(!resultData) return;
+  const modelData = simulateModel();
+  const lbl = LBL;
+
+  const tiiPart  = resultData.map(q=>q.tot);
+  const oacPart  = resultData.map(q=>q.oac);
+  const acpPart  = resultData.map(q=>q.acp);
+  const tiiModel = modelData.map(q=>q.tot);
+  const oacModel = modelData.map(q=>q.oac);
+  const acpModel = modelData.map(q=>q.acp);
+
+  // Metryki porównawcze
+  const maxTiiP=Math.max(...tiiPart).toFixed(1), maxTiiM=Math.max(...tiiModel).toFixed(1);
+  const redP=resultData.filter(q=>q.acp>4).length, redM=modelData.filter(q=>q.acp>4).length;
+  const oacEndP=oacPart[QN-1].toFixed(1), oacEndM=oacModel[QN-1].toFixed(1);
+  const maxDebtM=Math.max(...modelData.map(q=>q.debt)).toFixed(1);
+
+  const mc=document.getElementById('model-metrics');
+  if(mc) mc.innerHTML=[
+    {l:'Max TII: oceny / model',v:`${maxTiiP} / ${maxTiiM}`,c:+maxTiiM>+maxTiiP?'#A32D2D':'#3B6D11'},
+    {l:'Q czerwone: oceny / model',v:`${redP} / ${redM}`,c:redM>redP?'#A32D2D':'#3B6D11'},
+    {l:'OAC końcowe: oceny / model',v:`${oacEndP} / ${oacEndM}`,c:+oacEndM<+oacEndP?'#A32D2D':'#3B6D11'},
+    {l:'Szczyt długu (model)',v:maxDebtM,c:+maxDebtM>2?'#854F0B':'#3B6D11'},
+  ].map(m=>`<div class="metric"><div class="ml">${m.l}</div><div class="mv" style="color:${m.c};font-size:15px">${m.v}</div></div>`).join('');
+
+  // Wykres główny
+  if(mCompChart){mCompChart.destroy();mCompChart=null;}
+  mCompChart=new Chart(document.getElementById('model-chart'),{
+    type:'line',
+    data:{labels:lbl,datasets:[
+      {label:'TII — oceny zespołu',data:tiiPart,borderColor:'#185FA5',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#185FA5',pointBorderColor:'#fff',pointBorderWidth:2,tension:.3,borderDash:[],fill:{target:1,above:'rgba(162,45,45,0.08)',below:'transparent'}},
+      {label:'OAC — oceny zespołu',data:oacPart,borderColor:'#0F6E56',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:'#0F6E56',pointBorderColor:'#fff',pointBorderWidth:1,tension:.3,fill:false},
+      {label:'TII — model TRM',data:tiiModel,borderColor:'#854F0B',borderWidth:2,borderDash:[4,2],pointRadius:4,pointBackgroundColor:'#854F0B',pointBorderColor:'#fff',pointBorderWidth:1,tension:.3,fill:false},
+      {label:'OAC — model TRM',data:oacModel,borderColor:'#1D9E75',borderWidth:1.5,borderDash:[2,3],pointRadius:3,pointBackgroundColor:'#1D9E75',pointBorderColor:'#fff',pointBorderWidth:1,tension:.3,fill:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:800,easing:'easeInOutQuart'},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)}}},
+      scales:{x:{grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:11},color:'#888'}},
+              y:{min:0,max:10,ticks:{stepSize:2,font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,0.06)'}}}}
+  });
+
+  // ACP porównawczy
+  if(mCompAcp){mCompAcp.destroy();mCompAcp=null;}
+  mCompAcp=new Chart(document.getElementById('model-acp-chart'),{
+    type:'bar',
+    data:{labels:lbl,datasets:[
+      {label:'ACP oceny',data:acpPart,backgroundColor:acpPart.map(a=>a<=2?'rgba(192,221,151,0.7)':a<=4?'rgba(250,199,117,0.7)':'rgba(240,149,149,0.7)'),borderColor:acpPart.map(a=>a<=2?'#3B6D11':a<=4?'#BA7517':'#A32D2D'),borderWidth:1,borderRadius:3},
+      {label:'ACP model',data:acpModel,backgroundColor:acpModel.map(a=>a<=2?'rgba(29,158,117,0.25)':a<=4?'rgba(133,79,11,0.25)':'rgba(163,45,45,0.25)'),borderColor:acpModel.map(a=>a<=2?'#0F6E56':a<=4?'#854F0B':'#A32D2D'),borderWidth:1.5,borderRadius:2,type:'line',pointRadius:4,tension:.2,fill:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:600},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y.toFixed(2)}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888'}},
+              y:{ticks:{font:{size:10},color:'#888'},grid:{color:'rgba(0,0,0,0.06)'}}}}
+  });
+
+  // Komentarze automatyczne
+  const comments=[];
+  const avgGapTII = (tiiModel.reduce((s,v)=>s+v,0)-tiiPart.reduce((s,v)=>s+v,0))/QN;
+  if(avgGapTII>0.5) comments.push(`Średnia luka TII: model jest wyższy o ${avgGapTII.toFixed(1)} pkt — typowy optimism bias. Oceny zespołu systematycznie zaniżały intensywność transformacji.`);
+  else if(avgGapTII<-0.3) comments.push(`Oceny zespołu były wyższe od modelu o ${Math.abs(avgGapTII).toFixed(1)} pkt średnio — rzadkie i świadczy o dojrzałości diagnostycznej.`);
+  else comments.push(`Oceny zespołu były bliskie modelowi (luka ${avgGapTII.toFixed(2)} pkt) — dobra kalibracja.`);
+
+  const firstRedPart=resultData.find(q=>q.acp>4), firstRedModel=modelData.find(q=>q.acp>4);
+  if(firstRedPart&&firstRedModel&&firstRedModel.q<firstRedPart.q)
+    comments.push(`Model wskazuje pierwsze przekroczenie strefy czerwonej w Q${firstRedModel.q}, oceny zespołu — w Q${firstRedPart.q}. Te ${firstRedPart.q-firstRedModel.q} kwartały to okno interwencji, które optimism bias zabrał z ręki.`);
+  else if(!firstRedPart&&firstRedModel)
+    comments.push(`Oceny zespołu nie wskazywały strefy czerwonej. Model TRM wskazuje czerwoną strefę w Q${firstRedModel.q} — organizacja była pod większym obciążeniem niż wynikało z ocen.`);
+
+  // Największa luka E per projekt
+  let maxEDelta=0, maxEProj='';
+  calib.forEach((c,pi)=>{
+    if(c.active.some(a=>a)){
+      const delta=PROJECTS_MODEL[pi].E - c.e;
+      if(Math.abs(delta)>Math.abs(maxEDelta)){maxEDelta=delta;maxEProj=PR[pi].name;}
+    }
+  });
+  if(Math.abs(maxEDelta)>0.1)
+    comments.push(`Największa korekta E: ${maxEProj} — oceny ${(PROJECTS_MODEL[calib.findIndex((_,i)=>PR[i].name===maxEProj)]?.e||'?').toFixed(1)}, model ${PROJECTS_MODEL[calib.findIndex((_,i)=>PR[i].name===maxEProj)]?.E||'?'}. Lovallo & Kahneman (2003): liderzy inicjujący projekt zaniżają jego ładunek emocjonalny.`);
+
+  const cm=document.getElementById('model-comments');
+  if(cm) cm.innerHTML='<strong style="color:var(--color-text-primary);font-size:11px;display:block;margin-bottom:6px">Automatyczne komentarze modelu:</strong>'+comments.map(c=>`<div style="margin-bottom:5px;padding-left:10px;border-left:2px solid #185FA5;line-height:1.55">${c}</div>`).join('');
+
+  // Legenda
+  const leg=document.getElementById('model-panel');
+  if(leg&&!document.getElementById('model-legend')){
+    const ldiv=document.createElement('div');
+    ldiv.id='model-legend';
+    ldiv.style.cssText='display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--color-text-secondary);margin-bottom:8px;';
+    ldiv.innerHTML=[
+      {col:'#185FA5',dash:false,label:'TII — oceny zespołu'},
+      {col:'#0F6E56',dash:true,label:'OAC — oceny zespołu'},
+      {col:'#854F0B',dash:true,label:'TII — model TRM'},
+      {col:'#1D9E75',dash:true,label:'OAC — model TRM'},
+    ].map(l=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:20px;height:2px;background:${l.col};display:inline-block;${l.dash?'border-top:2px dashed '+l.col+';background:transparent':''}"></span>${l.label}</span>`).join('');
+    const chart=document.getElementById('model-chart');
+    if(chart&&chart.parentNode) chart.parentNode.insertBefore(ldiv,chart);
+  }
+}
+
+
+// ── KOMENTARZE PORÓWNANIA KALIBRACJI Z MODELEM ───────────────────
+function buildCompComments(){
+  const el = document.getElementById('comp-comments');
+  if(!el) return;
+  const modelData = simulateModel();
+  const comments = [];
+
+  // --- K1: luka TII ---
+  const tiiPart  = resultData.map(q=>q.tot);
+  const tiiModel = modelData.map(q=>q.tot);
+  const avgGap   = +((tiiModel.reduce((s,v)=>s+v,0) - tiiPart.reduce((s,v)=>s+v,0)) / QN).toFixed(1);
+  if(Math.abs(avgGap) > 0.4){
+    const dir = avgGap > 0 ? 'wyższe' : 'niższe';
+    comments.push(`Średnia różnica między Waszymi ocenami a modelem wynosi ${avgGap > 0 ? '+' : ''}${avgGap} pkt — model jest ${dir}. Liderzy inicjujący zmiany mają tendencję do łagodniejszej oceny ich wpływu na ludzi — Lovallo & Kahneman (2003) opisują ten mechanizm jako efekt autorstwa. Skąd Waszym zdaniem bierze się ta różnica?`);
+  } else {
+    comments.push(`Wasza kalibracja jest bliska modelowi (różnica ${avgGap > 0 ? '+' : ''}${avgGap} pkt). Czy to efekt podobnych założeń, czy może innych — warto sprawdzić per projekt.`);
+  }
+
+  // --- K2: okno interwencji ---
+  const firstRedPart  = resultData.find(q=>q.acp>4);
+  const firstRedModel = modelData.find(q=>q.acp>4);
+  if(firstRedPart && firstRedModel && firstRedModel.q !== firstRedPart.q){
+    const delta = firstRedPart.q - firstRedModel.q;
+    const early = delta > 0 ? `Model wskazuje wcześniej — Q${firstRedModel.q} vs Q${firstRedPart.q} w Waszych ocenach.` : `Wasze oceny wskazują wcześniej — Q${firstRedPart.q} vs Q${firstRedModel.q} w modelu.`;
+    comments.push(`${early} Różnica ${Math.abs(delta)} kwartał${Math.abs(delta)===1?'':'y'} to potencjalne okno interwencji — czas, w którym działania ochronne mogłyby być wdrożone wcześniej i taniej. Co mogło sprawić, że ten moment nie był widoczny?`);
+  } else if(!firstRedPart && firstRedModel){
+    comments.push(`Wasze oceny nie wskazywały strefy czerwonej. Model TRM wskazuje wejście w strefę czerwoną w Q${firstRedModel.q}. Warto zapytać: jakie założenia spowodowały tę różnicę?`);
+  } else if(firstRedPart && !firstRedModel){
+    comments.push(`Wasze oceny wskazują strefę czerwoną w Q${firstRedPart.q}, model TRM jej nie osiąga. Może to wynikać z bardziej konserwatywnych założeń M lub S — warto sprawdzić które projekty generują największą rozbieżność.`);
+  }
+
+  // --- K3: luka E (największa) ---
+  let maxEDelta = 0, maxEProjName = '', maxEPart = 0, maxEMod = 0;
+  calib.forEach((c,pi)=>{
+    if(!c.active.some(a=>a)) return;
+    const delta = PROJECTS_MODEL[pi].E - c.e;
+    if(Math.abs(delta) > Math.abs(maxEDelta)){
+      maxEDelta = delta;
+      maxEProjName = PR[pi].name;
+      maxEPart = c.e;
+      maxEMod = PROJECTS_MODEL[pi].E;
+    }
+  });
+  if(Math.abs(maxEDelta) >= 0.3){
+    comments.push(`Największa różnica w parametrze E dotyczy projektu „${maxEProjName}": E=${maxEPart.toFixed(1)} w Waszej ocenie vs E=${maxEMod.toFixed(1)} w modelu. Holmes-Rahe (1967) wskazuje, że tego typu zmiany mogą generować wyższy ładunek emocjonalny niż wynika z perspektywy planującego. Czy ta różnica was zastanawia?`);
+  }
+
+  // --- K4: luka S (największa) ---
+  let maxSDelta = 0, maxSProjName = '', maxSPart = 0, maxSMod = 0, maxSQi = 0;
+  calib.forEach((c,pi)=>{
+    if(!c.active.some(a=>a)) return;
+    for(let qi=0;qi<QN;qi++){
+      if(!c.active[qi]) continue;
+      const sPart = typeof c.s[qi]==='number' && c.s[qi]>1 ? c.s[qi] : c.s[qi]*100;
+      const phIdx = qi - c.active.findIndex(a=>a);
+      if(phIdx<0||phIdx>=PROJECTS_MODEL[pi].phases.length) continue;
+      const sMod = PROJECTS_MODEL[pi].phases[phIdx].s * 100;
+      const delta = sMod - sPart;
+      if(Math.abs(delta) > Math.abs(maxSDelta)){
+        maxSDelta = delta; maxSProjName = PR[pi].name;
+        maxSPart = sPart; maxSMod = sMod; maxSQi = qi+1;
+      }
+    }
+  });
+  if(Math.abs(maxSDelta) >= 15){
+    comments.push(`Największa różnica w zasięgu (S): „${maxSProjName}" w Q${maxSQi} — S=${Math.round(maxSPart)}% w Waszej ocenie vs S=${Math.round(maxSMod)}% w modelu. Brockner (1992): zmiany oddziałują na szerszy krąg niż formalny zasięg projektu — każdy obserwator pyta siebie: czy mnie to też dotknie? Jak to wygląda z Waszej perspektywy?`);
+  }
+
+  // --- K5: erozja OAC ---
+  const oacStart = resultData[0].oac, oacEnd = resultData[QN-1].oac;
+  const oacDiff  = +(oacEnd - oacStart).toFixed(1);
+  const hadRegen = resultData.some(q=>q.acp < 1.0);
+  if(oacDiff < -0.3){
+    const regenNote = hadRegen ? '' : ' Próg regeneracji (ACP < 1,0) nie został osiągnięty w żadnym kwartale.';
+    comments.push(`OAC zmieniło się z ${oacStart.toFixed(1)} do ${oacEnd.toFixed(1)}.${regenNote} Jakie działania mogłyby stworzyć warunki do odbudowania wydolności?`);
+  } else {
+    comments.push(`OAC utrzymało się stabilnie (${oacStart.toFixed(1)} → ${oacEnd.toFixed(1)}). Może to wynikać z rozłożonego tempa zmian — albo z innych założeń niż w modelu. Co Waszym zdaniem najbardziej wpłynęło na ten wynik?`);
+  }
+
+  // --- K6: dług adaptacyjny ---
+  const maxDebt = Math.max(...resultData.map(q=>q.debt));
+  const maxDebtQ = resultData.find(q=>q.debt===maxDebt);
+  if(maxDebt >= 0.5){
+    comments.push(`Szczyt długu adaptacyjnego: ${maxDebt.toFixed(1)} pkt w Q${maxDebtQ?.q||'?'}. Oznacza to, że organizacja wchodziłaby w kolejny kwartał z bazowym TII równym ${maxDebt.toFixed(1)} — nawet bez uruchamiania nowych projektów. Czy to byłoby odczuwalne w codziennym funkcjonowaniu firmy?`);
+  }
+
+  // Renderuj
+  el.innerHTML = comments.map((c,i) => `
+    <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start">
+      <div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#185FA5;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:1px">${i+1}</div>
+      <div style="font-size:12px;color:var(--color-text-primary);line-height:1.65">${c}</div>
+    </div>
+  `).join('');
+}
+
+function calcRes(cal){
+  let debt=0,oac=OAC_BASE;const qrs=[];
+  for(let q=0;q<QN;q++){
+    let base=0;
+    cal.forEach(c=>{if(c.active[q]&&c.m[q]!=null&&c.s[q]!=null){const sv=typeof c.s[q]==='number'&&c.s[q]>1?c.s[q]/100:c.s[q];const contrib=(c.m[q]*sv*c.e)/3;base+=contrib;}});
+    const din=debt;let tot=Math.min(base+din,10);
+    const acp=+(tot-oac).toFixed(2);const nd=tot>THR?+(tot-THR).toFixed(4):0;
+    qrs.push({q:q+1,base:+base.toFixed(2),din:+din.toFixed(2),tot:+tot.toFixed(2),oac:+oac.toFixed(2),acp,debt:nd});
+    debt=nd;
+    if(acp>4.0)oac=Math.max(1.0,+(oac-0.4).toFixed(2));
+    else if(acp<1.0)oac=Math.min(10.0,+(oac+0.2).toFixed(2));
+  }
+  return qrs;
+}
+
+function approve(){
+  resultData=calcRes(calib);goScreen(5);
+  const maxACP=Math.max(...resultData.map(q=>q.acp));
+  const redQ=resultData.filter(q=>q.acp>4).length;
+  const maxDebt=Math.max(...resultData.map(q=>q.debt));
+  const fr=resultData.find(q=>q.acp>4);
+  document.getElementById('res-metrics').innerHTML=[
+    {l:'Maks. ACP',v:maxACP.toFixed(1),c:maxACP>4?'#A32D2D':maxACP>2?'#854F0B':'#3B6D11'},
+    {l:'Kwartały czerwone',v:redQ,c:redQ>0?'#A32D2D':'#3B6D11'},
+    {l:'Szczyt długu adapt.',v:maxDebt.toFixed(1),c:maxDebt>2?'#854F0B':'#3B6D11'},
+    {l:'Pierwsze przekroczenie',v:fr?'Q'+fr.q:'Brak',c:fr?'#A32D2D':'#3B6D11'}
+  ].map(m=>`<div class="metric"><div class="ml">${m.l}</div><div class="mv" style="color:${m.c}">${m.v}</div></div>`).join('');
+  const oacS=resultData[0].oac,oacE=resultData[QN-1].oac,diff=+(oacE-oacS).toFixed(2);
+  document.getElementById('oac-arrow').innerHTML=`<span class="oac-arrow">OAC: ${oacS.toFixed(1)} → ${oacE.toFixed(1)} <strong style="color:${diff>=0?'#3B6D11':'#A32D2D'}">${diff>=0?'▲':'▼'} ${Math.abs(diff).toFixed(2)}</strong></span>`;
+  buildChartsAnimated(resultData);buildTable(resultData);buildCompComments();
+}
+
+function buildChartsAnimated(qrs){
+  const tii=qrs.map(q=>q.tot),oac=qrs.map(q=>q.oac),acps=qrs.map(q=>q.acp);
+  const xS={grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:11},color:'#888',autoSkip:false}};
+  if(mChart){mChart.destroy();mChart=null;}
+  mChart=new Chart(document.getElementById('main-chart'),{
+    type:'line',
+    data:{labels:LBL,datasets:[
+      {label:'TII',data:tii,borderColor:'#185FA5',borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#185FA5',pointBorderColor:'#fff',pointBorderWidth:2,tension:.3,fill:{target:1,above:'rgba(162,45,45,0.12)',below:'transparent'}},
+      {label:'OAC',data:oac,borderColor:'#0F6E56',borderWidth:2,pointRadius:4,pointBackgroundColor:'#0F6E56',pointBorderColor:'#fff',pointBorderWidth:2,tension:.3,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      animation:{duration:1200,easing:'easeInOutQuart'},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y.toFixed(1)}}},
+      scales:{x:xS,y:{min:0,max:10,ticks:{stepSize:1,font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,0.06)'}}}}
+  });
+  const valPlugin={id:'vp',afterDatasetsDraw(chart){
+    const {ctx,data}=chart;ctx.save();
+    chart.getDatasetMeta(0).data.forEach((bar,i)=>{
+      const v=data.datasets[0].data[i];const neg=v<0;
+      const bc=v<=2?'#3B6D11':v<=4?'#BA7517':'#A32D2D';
+      ctx.fillStyle=bc;ctx.font='600 10px system-ui';ctx.textAlign='center';
+      ctx.fillText(v.toFixed(1),bar.x,neg?bar.y+13:bar.y-5);
+    });ctx.restore();
+  }};
+  if(acpCh){acpCh.destroy();acpCh=null;}
+  acpCh=new Chart(document.getElementById('acp-chart'),{
+    type:'bar',
+    data:{labels:LBL,datasets:[{data:acps,backgroundColor:acps.map(a=>a<=2?'#C0DD97':a<=4?'#FAC775':'#F09595'),borderColor:acps.map(a=>a<=2?'#3B6D11':a<=4?'#BA7517':'#A32D2D'),borderWidth:1,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'ACP: '+ctx.parsed.y.toFixed(2)}}},
+      scales:{x:xS,y:{grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:11},color:'#888',callback:v=>v.toFixed(1)}}}},
+    plugins:[valPlugin]
+  });
+}
+
+function buildTable(qrs){
+  const rows=[{l:'Baza TII (inicjatywy)',k:'base'},{l:'Dług z poprzedniego Q',k:'din'},{l:'TII skumulowane',k:'tot',b:1},{l:'OAC',k:'oac'},{l:'ACP = TII − OAC',k:'acp',b:1,z:1},{l:'Dług do następnego Q',k:'debt'}];
+  let t=`<table class="rtbl"><thead><tr><th style="text-align:left">Parametr</th>${qrs.map(q=>`<th>Q${q.q}</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach(r=>{
+    t+=`<tr${r.b?' style="font-weight:600"':''}>`;t+=`<td>${r.l}</td>`;
+    qrs.forEach(q=>{const v=q[r.k].toFixed(2);if(r.z){const z=q.acp<=2?'g':q.acp<=4?'a':'r';t+=`<td><span class="c${z}">${v}</span></td>`;}else t+=`<td>${v}</td>`;});
+    t+='</tr>';
+  });
+  t+=`</tbody></table>`;document.getElementById('res-table').innerHTML=t;
+}
+
+
+// ── WYKRESY KALIBRACJI M I S ──────────────────────────────────────
+let calibMChart=null,calibSChart=null;
+function renderCalibCharts(pi){
+  const cal=calib[pi];
+  const labels=[],mAvg=[],mMin=[],mMax=[],sAvg=[],sMin=[],sMax=[];
+  // hasData: kwartał ma dane uczestników tylko gdy SPR był aktualizowany przez importCodes
+  const hasData=SPR_E[pi]>0||SPR_M[pi].some(v=>v&&v.mn!=null)||SPR_S[pi].some(v=>v&&v.mn!=null);
+  for(let qi=0;qi<QN;qi++){
+    if(!cal.active[qi])continue;
+    labels.push('Q'+(qi+1));
+    const m=cal.m[qi];
+    const mSpr=hasData?SPR_M[pi][qi]:null;
+    mAvg.push(m);
+    mMin.push(mSpr&&mSpr.mn!=null?mSpr.mn:m);
+    mMax.push(mSpr&&mSpr.mx!=null?mSpr.mx:m);
+    const s=cal.s[qi];
+    const sSpr=hasData?SPR_S[pi][qi]:null;
+    sAvg.push(s);
+    sMin.push(sSpr&&sSpr.mn!=null?sSpr.mn:s);
+    sMax.push(sSpr&&sSpr.mx!=null?sSpr.mx:s);
+  }
+  const xOpts={grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#888'}};
+  const corrOpts={borderColor:'transparent',pointRadius:0,tension:.3,fill:true};
+  // ── M chart
+  if(calibMChart){calibMChart.destroy();calibMChart=null;}
+  const mc=document.getElementById('calib-m-chart');
+  if(mc&&labels.length){
+    calibMChart=new Chart(mc,{type:'line',
+      data:{labels,datasets:[
+        {...corrOpts,label:'M max',data:mMax,backgroundColor:'rgba(24,95,165,0.13)',fill:'+1',yAxisID:'yM'},
+        {...corrOpts,label:'M min',data:mMin,backgroundColor:'rgba(24,95,165,0.13)',fill:false,yAxisID:'yM'},
+        {label:'Śr. M',data:mAvg,borderColor:'#185FA5',borderWidth:2.5,pointRadius:4,
+         pointBackgroundColor:'#185FA5',pointBorderColor:'#fff',pointBorderWidth:2,
+         tension:.3,fill:false,backgroundColor:'transparent',yAxisID:'yM'},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        animation:{duration:600,easing:'easeInOutQuart'},
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='Śr. M'?'Średnia M: '+ctx.parsed.y.toFixed(1):null}}},
+        scales:{x:xOpts,yM:{type:'linear',position:'left',min:1,max:5,ticks:{stepSize:1,font:{size:10},color:'#185FA5'},
+          grid:{color:'rgba(0,0,0,0.05)'},
+          title:{display:true,text:'M (1–5)',font:{size:9},color:'#185FA5'}}}}
+    });
+  }
+  // ── S chart
+  if(calibSChart){calibSChart.destroy();calibSChart=null;}
+  const sc=document.getElementById('calib-s-chart');
+  if(sc&&labels.length){
+    calibSChart=new Chart(sc,{type:'line',
+      data:{labels,datasets:[
+        {...corrOpts,label:'S max',data:sMax,backgroundColor:'rgba(133,79,11,0.12)',fill:'+1'},
+        {...corrOpts,label:'S min',data:sMin,backgroundColor:'rgba(133,79,11,0.12)',fill:false},
+        {label:'Śr. S',data:sAvg,borderColor:'#854F0B',borderWidth:2.5,pointRadius:4,
+         pointBackgroundColor:'#854F0B',pointBorderColor:'#fff',pointBorderWidth:2,
+         tension:.3,fill:false,backgroundColor:'transparent'},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        animation:{duration:600,easing:'easeInOutQuart'},
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='Śr. S'?'Średnia S: '+ctx.parsed.y.toFixed(0)+'%':null}}},
+        scales:{x:xOpts,y:{min:0,max:100,ticks:{font:{size:10},color:'#854F0B',callback:v=>v+'%'},
+          grid:{color:'rgba(0,0,0,0.05)'},
+          title:{display:true,text:'S (%)',font:{size:9},color:'#854F0B'}}}}
+    });
+  }
+}
+
+// ── HEATMAPA ROZBIEŻNOŚCI ─────────────────────────────────────────
+function buildHeatmap(){
+  if(!calib||!SPR_M)return;
+  const QS=['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8'];
+  function cellColor(spread,maxSpread){
+    if(spread===0)return{bg:'#EAF3DE',fg:'#3B6D11'};
+    const r=spread/maxSpread;
+    if(r<0.33)return{bg:'#FFF9E6',fg:'#854F0B'};
+    if(r<0.66)return{bg:'#FAEEDA',fg:'#854F0B'};
+    return{bg:'#FCEBEB',fg:'#A32D2D'};
+  }
+  let html=`<table style="border-collapse:collapse;font-size:11px;min-width:560px;width:100%">
+    <thead><tr><th style="text-align:left;padding:5px 8px;font-size:10px;color:#888;font-weight:600;white-space:nowrap">Projekt</th>
+    ${QS.map(q=>`<th style="padding:5px 6px;font-size:10px;color:#888;font-weight:600;text-align:center">${q}</th>`).join('')}
+    <th style="padding:5px 6px;font-size:10px;color:#888;font-weight:600;text-align:center">E</th>
+    </tr></thead><tbody>`;
+  const maxM=Math.max(...PR.map((_,pi)=>Math.max(...SPR_M[pi])));
+  const maxS=Math.max(...PR.map((_,pi)=>Math.max(...SPR_S[pi])));
+  const maxE=Math.max(...SPR_E);
+  PR.forEach((p,pi)=>{
+    const shortName=p.name.split(' ').slice(0,3).join(' ');
+    const bg=pi%2===0?'#fafaf9':'#ffffff';
+    html+=`<tr style="background:${bg}">
+      <td style="padding:5px 8px;font-weight:500;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${p.name}">${shortName}…</td>`;
+    for(let qi=0;qi<8;qi++){
+      if(!calib[pi].active[qi]){html+=`<td style="padding:4px 6px;text-align:center;color:#ccc">—</td>`;continue;}
+      const mSpr=SPR_M[pi][qi],sSpr=SPR_S[pi][qi];
+      const mSpread=mSpr&&mSpr.mn!=null?+(mSpr.mx-mSpr.mn).toFixed(1):0;
+      const sSpread=sSpr&&sSpr.mn!=null?Math.round(sSpr.mx-sSpr.mn):0;
+      const combined=Math.max(mSpread/Math.max(maxM,1),sSpread/Math.max(maxS,1));
+      const combinedAbs=Math.max(mSpread,sSpread/10);
+      const {bg:cbg,fg}=cellColor(combinedAbs,Math.max(maxM,maxS/10));
+      html+=`<td style="padding:4px 6px;text-align:center;background:${cbg};color:${fg};font-weight:600;border-radius:3px;font-size:10px">M±${mSpread.toFixed(1)}<br>S±${sSpread}%</td>`;
+    }
+    const eC=cellColor(SPR_E[pi],Math.max(maxE,0.1));
+    html+=`<td style="padding:4px 6px;text-align:center;background:${eC.bg};color:${eC.fg};font-weight:600;border-radius:3px;font-size:10px">±${SPR_E[pi].toFixed(1)}</td>`;
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table>`;
+  document.getElementById('heatmap-area').innerHTML=html;
+}
+
+// ── ZAKŁADKI PROJEKTÓW DLA WYKRESU MS ────────────────────────────
+let msCurrent=0,msChart=null;
+function buildMSTabs(){
+  const tabs=document.getElementById('ms-proj-tabs');
+  if(!tabs)return;
+  tabs.innerHTML=PR.map((p,i)=>`<button onclick="buildMSChart(${i})" style="font-size:10px;padding:3px 8px;border-radius:5px;border:.5px solid ${i===msCurrent?'#185FA5':'rgba(0,0,0,0.15)'};background:${i===msCurrent?'#E6F1FB':'transparent'};color:${i===msCurrent?'#0C447C':'#666'};cursor:pointer;font-family:inherit" id="mst${i}">${p.name.split(' ').slice(0,3).join(' ')}…</button>`).join('');
+}
+
+// ── WYKRES M/S ZE ŚREDNIĄ I KORYTARZEM ──────────────────────────
+function buildMSChart(pi){
+  msCurrent=pi;
+  buildMSTabs();
+  const c2=calib[pi];
+  const activeQs=LBL.filter((_,qi)=>c2.active[qi]);
+  const mAvg=[],mMin=[],mMax=[],sAvg=[],sMin=[],sMax=[],labels=[];
+  for(let qi=0;qi<QN;qi++){
+    if(!c2.active[qi])continue;
+    labels.push(LBL[qi]);
+    mAvg.push(c2.m[qi]);
+    const mSpr=SPR_M[pi][qi];
+    mMin.push(mSpr&&mSpr.mn!=null?mSpr.mn:c2.m[qi]);
+    mMax.push(mSpr&&mSpr.mx!=null?mSpr.mx:c2.m[qi]);
+    sAvg.push(c2.s[qi]);
+    const sSpr=SPR_S[pi][qi];
+    sMin.push(sSpr&&sSpr.mn!=null?sSpr.mn:c2.s[qi]);
+    sMax.push(sSpr&&sSpr.mx!=null?sSpr.mx:c2.s[qi]);
+  }
+  if(msChart){msChart.destroy();msChart=null;}
+  const ctx=document.getElementById('ms-chart');
+  if(!ctx)return;
+  msChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      // Korytarz M — fill między min i max
+      {label:'M max',data:mMax,borderColor:'transparent',backgroundColor:'rgba(24,95,165,0.10)',fill:'+1',tension:.3,pointRadius:0,yAxisID:'yM'},
+      {label:'M min',data:mMin,borderColor:'transparent',backgroundColor:'rgba(24,95,165,0.10)',fill:false,tension:.3,pointRadius:0,yAxisID:'yM'},
+      // Średnia M
+      {label:'Średnia M',data:mAvg,borderColor:'#185FA5',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#185FA5',pointBorderColor:'#fff',pointBorderWidth:2,tension:.3,fill:false,yAxisID:'yM'},
+      // Korytarz S
+      {label:'S max',data:sMax,borderColor:'transparent',backgroundColor:'rgba(133,79,11,0.10)',fill:'+1',tension:.3,pointRadius:0,yAxisID:'yS'},
+      {label:'S min',data:sMin,borderColor:'transparent',backgroundColor:'rgba(133,79,11,0.10)',fill:false,tension:.3,pointRadius:0,yAxisID:'yS'},
+      // Średnia S
+      {label:'Średnia S (%)',data:sAvg,borderColor:'#854F0B',borderWidth:2,borderDash:[5,3],pointRadius:4,pointBackgroundColor:'#854F0B',pointBorderColor:'#fff',pointBorderWidth:2,tension:.3,fill:false,yAxisID:'yS'},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      animation:{duration:700,easing:'easeInOutQuart'},
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>{if(ctx.dataset.label.includes('max')||ctx.dataset.label.includes('min'))return null;return ctx.dataset.label+': '+ctx.parsed.y.toFixed(1)+(ctx.dataset.yAxisID==='yS'?'%':'');}}}},
+      scales:{
+        x:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#888'}},
+        yM:{type:'linear',position:'left',min:1,max:5,ticks:{stepSize:1,font:{size:10},color:'#185FA5'},grid:{color:'rgba(0,0,0,0.05)'},title:{display:true,text:'M',font:{size:10},color:'#185FA5'}},
+        yS:{type:'linear',position:'right',min:0,max:100,ticks:{font:{size:10},color:'#854F0B',callback:v=>v+'%'},grid:{display:false},title:{display:true,text:'S (%)',font:{size:10},color:'#854F0B'}}
+      }}
+  });
+}
+
+// ── EKSPORT PDF ──────────────────────────────────────────────────
+function exportPDF(){
+  const style=`<style>
+    body{font-family:Arial,sans-serif;font-size:11px;color:#1a1a1a;margin:20px}
+    h1{font-size:16px;margin-bottom:4px}
+    h2{font-size:12px;margin:16px 0 6px;color:#185FA5;border-bottom:1px solid #eee;padding-bottom:4px}
+    table{border-collapse:collapse;width:100%;margin-bottom:12px}
+    th{background:#f6f5f1;padding:6px 8px;text-align:left;font-size:10px;color:#666;font-weight:600}
+    td{padding:5px 8px;border-bottom:.5px solid #eee;font-size:10px}
+    .red{color:#A32D2D;font-weight:700} .amber{color:#854F0B;font-weight:700} .green{color:#3B6D11;font-weight:700}
+    .metric{display:inline-block;margin:4px 8px 4px 0;padding:6px 12px;background:#f6f5f1;border-radius:6px;min-width:120px}
+    .ml{font-size:9px;color:#888;margin-bottom:2px} .mv{font-size:18px;font-weight:700}
+  </style>`;
+  if(!resultData){alert('Najpierw zatwierdź kalibrację.');return;}
+  const maxACP=Math.max(...resultData.map(q=>q.acp));
+  const redQ=resultData.filter(q=>q.acp>4).length;
+  const maxDebt=Math.max(...resultData.map(q=>q.debt));
+  const fr=resultData.find(q=>q.acp>4);
+  const metricColor=v=>v>4?'red':v>2?'amber':'green';
+  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TRM – Wyniki symulacji</title>${style}</head><body>`;
+  html+=`<h1>TRM Symulacja – Wyniki stress-testu</h1>`;
+  html+=`<div style="font-size:10px;color:#888;margin-bottom:12px">Logistics Sp. z o.o. | OAC startowe: 4,5 | ${new Date().toLocaleDateString('pl-PL')}</div>`;
+  html+=`<h2>Kluczowe wskaźniki</h2><div>`;
+  html+=`<div class="metric"><div class="ml">Maks. ACP</div><div class="mv ${metricColor(maxACP)}">${maxACP.toFixed(1)}</div></div>`;
+  html+=`<div class="metric"><div class="ml">Kwartały czerwone</div><div class="mv ${redQ>0?'red':'green'}">${redQ}</div></div>`;
+  html+=`<div class="metric"><div class="ml">Szczyt długu adapt.</div><div class="mv ${metricColor(maxDebt)}">${maxDebt.toFixed(1)}</div></div>`;
+  html+=`<div class="metric"><div class="ml">Pierwsze przekroczenie</div><div class="mv ${fr?'red':'green'}">${fr?'Q'+fr.q:'Brak'}</div></div>`;
+  html+=`</div>`;
+  const oacS=resultData[0].oac,oacE=resultData[QN-1].oac,diff=+(oacE-oacS).toFixed(2);
+  html+=`<p style="margin:8px 0;font-size:11px">OAC: <strong>${oacS.toFixed(1)}</strong> → <strong>${oacE.toFixed(1)}</strong> <strong style="color:${diff>=0?'#3B6D11':'#A32D2D'}">${diff>=0?'▲':'▼'} ${Math.abs(diff).toFixed(2)}</strong></p>`;
+  html+=`<h2>Tabela kwartalna</h2><table><thead><tr><th>Parametr</th>${resultData.map(q=>`<th>Q${q.q}</th>`).join('')}</tr></thead><tbody>`;
+  [{l:'TII skumulowane',k:'tot'},{l:'OAC',k:'oac'},{l:'ACP = TII − OAC',k:'acp',z:1},{l:'Dług do następnego Q',k:'debt'}].forEach(r=>{
+    html+=`<tr><td style="font-weight:600">${r.l}</td>`;
+    resultData.forEach(q=>{const v=q[r.k].toFixed(2);if(r.z){const cls=q.acp<=2?'green':q.acp<=4?'amber':'red';html+=`<td class="${cls}">${v}</td>`;}else html+=`<td>${v}</td>`;});
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table>`;
+  html+=`<h2>Kalibracja projektów</h2><table><thead><tr><th>Projekt</th><th>E</th><th>Kwartały</th><th>M śr.</th><th>S śr. (%)</th></tr></thead><tbody>`;
+  PR.forEach((p,pi)=>{
+    const cal=calib[pi];
+    const activeQi=cal.active.map((a,i)=>a?i:-1).filter(i=>i>=0);
+    const mAvg=activeQi.length?+(activeQi.reduce((s,qi)=>s+cal.m[qi],0)/activeQi.length).toFixed(1):'-';
+    const sAvg=activeQi.length?+(activeQi.reduce((s,qi)=>s+cal.s[qi],0)/activeQi.length).toFixed(0)+' %':'-';
+    const qs=activeQi.length?`Q${activeQi[0]+1}–Q${activeQi[activeQi.length-1]+1}`:'-';
+    html+=`<tr><td>${p.name}</td><td>${cal.e.toFixed(2)}</td><td>${qs}</td><td>${mAvg}</td><td>${sAvg}</td></tr>`;
+  });
+  html+=`</tbody></table>`;
+  const interp=document.getElementById('ceo-input')?.value;
+  if(interp){html+=`<h2>Porównanie kalibracji z modelem — obserwacje i wnioski</h2><p style="line-height:1.7">${interp.replace(/\n/g,'<br>')}</p>`;}
+  html+=`</body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='TRM_Wyniki_'+new Date().toISOString().slice(0,10)+'.html';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+initCalib();
+setRole('participant');
+</script>
+</body>
+</html>
