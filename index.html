@@ -388,13 +388,24 @@ function setRole(r){
   } else {
     ex.innerHTML=`<div class="card">
       <div class="sec-label">Sesja warsztatowa</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <button class="btn primary" onclick="createSessionAndGo()"><i class="ti ti-plus" aria-hidden="true"></i> Utwórz nową sesję</button>
-        <span style="font-size:12px;color:var(--color-text-secondary);align-self:center">lub dołącz do istniejącej:</span>
+      <div id="home-session-create">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+          <button class="btn primary" onclick="createSessionHome()"><i class="ti ti-plus" aria-hidden="true"></i> Utwórz nową sesję</button>
+          <span style="font-size:12px;color:var(--color-text-secondary)">lub dołącz do istniejącej:</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="join-session-home" placeholder="TRM-XXXX" style="width:130px;font-family:monospace;text-transform:uppercase;font-size:13px;letter-spacing:.08em" maxlength="8">
+          <button class="btn" onclick="joinSessionHome()">Dołącz</button>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="text" id="join-session-home" placeholder="TRM-XXXX" style="width:130px;font-family:monospace;text-transform:uppercase;font-size:13px;letter-spacing:.08em" maxlength="8">
-        <button class="btn" onclick="joinSessionAndGo()">Dołącz</button>
+      <div id="home-session-active" style="display:none">
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">Kod sesji dla uczestników:</div>
+        <div style="background:#EAF3DE;border-radius:var(--border-radius-md);padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+          <span id="home-session-code" style="font-size:28px;font-weight:700;color:#185FA5;font-family:monospace;letter-spacing:.15em"></span>
+          <button class="btn sm" onclick="copyHomeCode()"><i class="ti ti-copy" aria-hidden="true"></i> Kopiuj</button>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:12px">Wyślij ten kod uczestnikom — przez Teams, e-mail lub WhatsApp</div>
+        <button class="btn primary" onclick="goToCEOPanel()">Otwórz panel CEO <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
       </div>
     </div>`;
   }
@@ -416,6 +427,36 @@ function createSession(){
   const sid=genSessionId();
   currentSessionId=sid;
   activateSession(sid);
+}
+
+function createSessionHome(){
+  const sid=genSessionId();
+  currentSessionId=sid;
+  document.getElementById('home-session-create').style.display='none';
+  document.getElementById('home-session-active').style.display='block';
+  document.getElementById('home-session-code').textContent=sid;
+}
+
+function joinSessionHome(){
+  const sid=document.getElementById('join-session-home')?.value.trim().toUpperCase();
+  if(!sid||sid.length<4){alert('Wpisz kod sesji.');return;}
+  currentSessionId=sid;
+  document.getElementById('home-session-create').style.display='none';
+  document.getElementById('home-session-active').style.display='block';
+  document.getElementById('home-session-code').textContent=sid;
+}
+
+function copyHomeCode(){
+  const code=document.getElementById('home-session-code')?.textContent||'';
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=document.querySelector('[onclick="copyHomeCode()"]');
+    if(btn){const o=btn.innerHTML;btn.innerHTML='✅ Skopiowano';setTimeout(()=>btn.innerHTML=o,2000);}
+  }).catch(()=>alert('Kod: '+code));
+}
+
+function goToCEOPanel(){
+  goScreen(4);renderCEOTabs();renderCEODetail();
+  activateSession(currentSessionId);
 }
 
 function createSessionAndGo(){
